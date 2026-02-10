@@ -90,7 +90,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'logs',
         name: 'AuditLogs',
-        component: () => import('@/views/audit/logs/index.vue'),
+        component: () => import('@/views/audit/audit-logs/index.vue'),
         meta: { title: '请求审计', icon: 'Connection' },
       },
       {
