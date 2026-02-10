@@ -7,7 +7,9 @@ ENV CGO_ENABLED=0
 ENV GOOS=linux
 ENV GOARCH=amd64
 
-RUN apk add --no-cache git ca-certificates tzdata
+# 使用阿里云镜像源加速（国内环境）
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
+    apk add --no-cache git ca-certificates tzdata
 
 COPY services/file-service/go.mod services/file-service/go.sum ./
 COPY packages/libs/go-common/ /packages/libs/go-common/
@@ -25,7 +27,9 @@ FROM alpine:3.19 AS final
 WORKDIR /app
 
 ENV TZ=Asia/Shanghai
-RUN apk add --no-cache ca-certificates tzdata && \
+# 使用阿里云镜像源加速（国内环境）
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
+    apk add --no-cache ca-certificates tzdata && \
     cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "Asia/Shanghai" > /etc/timezone
 
