@@ -75,7 +75,7 @@ services:
 
   # Kafka (可选 - 文件服务异步消息) - 使用 Confluent 镜像 KRaft 模式
   kafka:
-    image: confluentinc/cp-kafka:latest
+    image: cp-kafka:latest
     container_name: claymo-kafka
     restart: unless-stopped
     ports:
