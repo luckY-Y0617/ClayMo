@@ -142,26 +142,33 @@ services:
     container_name: claymo-gateway
     restart: unless-stopped
     ports:
-      - "5080:5080"    # HTTP - 统一入口
-      - "5443:5443"    # HTTPS - 统一入口
+      - "5080:5080"    # HTTP
+      - "5443:5443"    # HTTPS（配置证书后可用）
     volumes:
-      - ./infra/cert:/app/cert:ro
+      # 证书目录（如果没有证书文件，只使用 HTTP）
+      - ${CERT_PATH:-./infra/cert}:/app/cert:ro
     environment:
-      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
-      ASPNETCORE_URLS: http://+:5080;https://+:5443
-      # 子域名配置
-      Domains__AdminPrefix: admin.
-      # 证书配置
-      Kestrel__Endpoints__Https__Url: https://+:5443
-      Kestrel__Endpoints__Https__Certificate__Path: /app/cert/claymo.local+3.pem
-      Kestrel__Endpoints__Https__Certificate__KeyPath: /app/cert/claymo.local+3-key.pem
-      Kestrel__Endpoints__Http__Url: http://+:5080
-      # CORS（子域名隔离）
-      Cors__Origins__0: http://claymo.local:5080
-      Cors__Origins__1: https://claymo.local:5443
-      Cors__Origins__2: http://admin.claymo.local:5080
-      Cors__Origins__3: https://admin.claymo.local:5443
-      # API 路由
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      # HTTP + HTTPS 双端口（证书可选）
+      ASPNETCORE_URLS: ${ASPNETCORE_URLS:-http://+:5080}
+      
+      # ========== 子域名配置 ==========
+      Domains__AdminPrefix: ${ADMIN_PREFIX:-admin.}
+      
+      # ========== CORS 配置 ==========
+      # 开发/临时环境：允许所有（使用 IP 访问）
+      # 生产环境：配置具体域名
+      Cors__Origins__0: ${CORS_ORIGIN_0:-*}
+      Cors__Origins__1: ${CORS_ORIGIN_1:-}
+      Cors__Origins__2: ${CORS_ORIGIN_2:-}
+      
+      # ========== HTTPS 证书配置（可选）==========
+      # 如果不配置或文件不存在，自动降级为仅 HTTP
+      Kestrel__Endpoints__Https__Url: ${HTTPS_URL:-}
+      Kestrel__Endpoints__Https__Certificate__Path: ${CERT_FILE:-}
+      Kestrel__Endpoints__Https__Certificate__KeyPath: ${CERT_KEY_FILE:-}
+      
+      # ========== API 路由 ==========
       ReverseProxy__Clusters__api-cluster__Destinations__api-service__Address: http://api:19001
       ReverseProxy__Clusters__file-cluster__Destinations__file-service__Address: http://file-service:8889
     depends_on:

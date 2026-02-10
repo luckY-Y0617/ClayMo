@@ -51,6 +51,9 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
     cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "Asia/Shanghai" > /etc/timezone
 
+# 创建证书目录（即使没有证书文件也不会报错）
+RUN mkdir -p /app/cert
+
 # ------------------------------------------------
 # .NET Build Stage
 # ------------------------------------------------
