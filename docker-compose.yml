@@ -57,7 +57,7 @@ services:
       - claymo-network
 
   redis:
-    image: redis:latest
+    image: redis:7-alpine
     container_name: claymo-redis
     restart: unless-stopped
     ports:
@@ -75,7 +75,7 @@ services:
 
   # Kafka (可选 - 文件服务异步消息) - 使用 Confluent 镜像 KRaft 模式
   kafka:
-    image: cp-kafka:latest
+    image: confluentinc/cp-kafka:latest
     container_name: claymo-kafka
     restart: unless-stopped
     ports:
