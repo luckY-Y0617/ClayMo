@@ -1,0 +1,62 @@
+# ================================================
+# Docker Ignore - 减少构建上下文体积
+# ================================================
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+*~
+
+# Node.js
+**/node_modules
+**/.pnpm-store
+
+# .NET
+**/bin
+**/obj
+**/*.user
+**/*.suo
+
+# Build outputs
+**/dist
+**/out
+**/build
+
+# Logs (only log files, not source directories)
+**/*.log
+
+# Test
+**/coverage
+**/.nyc_output
+
+# Temporary files
+**/.tmp
+**/.temp
+**/.cache
+
+# Documentation (not needed in image)
+*.md
+!README.md
+docs/
+
+# Scripts (not needed in image)
+scripts/
+
+# Development files
+docker-compose*.yml
+.env*
+*.local
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+

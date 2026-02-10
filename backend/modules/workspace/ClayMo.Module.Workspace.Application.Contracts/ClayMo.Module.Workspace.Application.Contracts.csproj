@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\framework\ClayMo.Framework.SqlSugar.Abstractions\ClayMo.Framework.SqlSugar.Abstractions.csproj" />
+      <ProjectReference Include="..\ClayMo.Module.Workspace.Domain.Shared\ClayMo.Module.Workspace.Domain.Shared.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Volo.Abp.Ddd.Application.Contracts" Version="10.0.0" />
+    </ItemGroup>
+
+</Project>

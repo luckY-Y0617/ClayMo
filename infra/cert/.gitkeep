@@ -1,0 +1,11 @@
+# SSL 证书目录
+# 用于存放本地开发的 HTTPS 证书
+# 
+# 生成本地开发证书（使用 mkcert，支持子域名）:
+#   mkcert -install
+#   mkcert claymo.local "*.claymo.local" localhost 127.0.0.1
+#   mv claymo.local+3.pem claymo.local+3-key.pem infra/cert/
+#
+# 配置 hosts 文件（Windows: C:\Windows\System32\drivers\etc\hosts）:
+#   127.0.0.1  claymo.local
+#   127.0.0.1  admin.claymo.local

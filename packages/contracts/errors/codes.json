@@ -1,0 +1,91 @@
+{
+  "$schema": "./codes.schema.json",
+  "version": "1.0.0",
+  "description": "ClayMo 统一错误码定义",
+  "categories": {
+    "Identity": {
+      "name": "身份认证相关",
+      "codes": {
+        "LoginFailed": { "message": "用户名或密码错误", "httpStatus": 401 },
+        "UserNotFound": { "message": "用户不存在", "httpStatus": 404 },
+        "UserDisabled": { "message": "用户已被禁用", "httpStatus": 403 },
+        "UserLocked": { "message": "用户已被锁定，请稍后再试", "httpStatus": 423 },
+        "InvalidCredentials": { "message": "用户名或密码错误", "httpStatus": 401 },
+        "PasswordExpired": { "message": "密码已过期，请修改密码", "httpStatus": 403 },
+        "InvalidPassword": { "message": "密码不符合要求", "httpStatus": 400 },
+        "InvalidUserName": { "message": "用户名不符合要求", "httpStatus": 400 },
+        "UserAlreadyExists": { "message": "用户名已存在", "httpStatus": 409 },
+        "EmailAlreadyExists": { "message": "邮箱已被使用", "httpStatus": 409 },
+        "PhoneAlreadyExists": { "message": "手机号已被使用", "httpStatus": 409 },
+        "InvalidToken": { "message": "登录令牌无效，请重新登录", "httpStatus": 401 },
+        "TokenExpired": { "message": "登录已过期，请重新登录", "httpStatus": 401 },
+        "SessionExpired": { "message": "会话已过期，请重新登录", "httpStatus": 401 },
+        "InvalidVerificationCode": { "message": "验证码错误", "httpStatus": 400 },
+        "VerificationCodeExpired": { "message": "验证码已过期", "httpStatus": 400 },
+        "TooManyAttempts": { "message": "登录尝试次数过多，请稍后再试", "httpStatus": 429 },
+        "InvalidCaptcha": { "message": "图形验证码错误", "httpStatus": 400 },
+        "SystemRolePermissionImmutable": { "message": "系统角色权限由平台维护，禁止修改", "httpStatus": 403 }
+      }
+    },
+    "Permission": {
+      "name": "权限相关",
+      "codes": {
+        "Forbidden": { "message": "您没有权限执行此操作", "httpStatus": 403 },
+        "AccessDenied": { "message": "访问被拒绝", "httpStatus": 403 },
+        "InsufficientPermissions": { "message": "权限不足", "httpStatus": 403 }
+      }
+    },
+    "Tenant": {
+      "name": "租户相关",
+      "codes": {
+        "NotFound": { "message": "租户不存在", "httpStatus": 404 },
+        "Disabled": { "message": "租户已被禁用", "httpStatus": 403 },
+        "Invalid": { "message": "无效的租户", "httpStatus": 400 }
+      }
+    },
+    "Business": {
+      "name": "通用业务错误",
+      "codes": {
+        "InvalidOperation": { "message": "无效的操作", "httpStatus": 400 },
+        "ResourceNotFound": { "message": "资源不存在", "httpStatus": 404 },
+        "ResourceAlreadyExists": { "message": "资源已存在", "httpStatus": 409 },
+        "InvalidInput": { "message": "输入数据无效", "httpStatus": 400 },
+        "OperationFailed": { "message": "操作失败", "httpStatus": 500 },
+        "ValidationFailed": { "message": "数据验证失败", "httpStatus": 400 }
+      }
+    },
+    "Kb": {
+      "name": "知识库相关",
+      "codes": {
+        "NotFound": { "message": "知识库不存在", "httpStatus": 404 },
+        "DocumentNotFound": { "message": "文档不存在", "httpStatus": 404 },
+        "AccessDenied": { "message": "无权访问该知识库", "httpStatus": 403 },
+        "InvalidParent": { "message": "无效的父文档", "httpStatus": 400 },
+        "CircularReference": { "message": "不能移动到子文档下", "httpStatus": 400 },
+        "VersionConflict": { "message": "文档版本冲突，请刷新后重试", "httpStatus": 409 }
+      }
+    },
+    "File": {
+      "name": "文件服务相关",
+      "codes": {
+        "NotFound": { "message": "文件不存在", "httpStatus": 404 },
+        "TooLarge": { "message": "文件过大", "httpStatus": 413 },
+        "InvalidType": { "message": "不支持的文件类型", "httpStatus": 415 },
+        "UploadFailed": { "message": "文件上传失败", "httpStatus": 500 },
+        "QuotaExceeded": { "message": "存储空间已满", "httpStatus": 507 }
+      }
+    },
+    "System": {
+      "name": "系统错误",
+      "codes": {
+        "InternalError": { "message": "系统内部错误，请稍后重试", "httpStatus": 500 },
+        "ServiceUnavailable": { "message": "服务暂时不可用，请稍后重试", "httpStatus": 503 },
+        "DatabaseError": { "message": "数据库错误，请联系管理员", "httpStatus": 500 },
+        "NetworkError": { "message": "网络错误，请检查网络连接", "httpStatus": 502 },
+        "Timeout": { "message": "请求超时，请稍后重试", "httpStatus": 504 },
+        "RateLimited": { "message": "请求频率过高，请稍后再试", "httpStatus": 429 }
+      }
+    }
+  }
+}
+

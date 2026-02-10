@@ -1,0 +1,248 @@
+# ================================================
+# ClayMo Docker Compose
+# ================================================
+# 使用方法:
+#   一键启动全部:   docker compose --profile full up -d
+#   仅基础设施:     docker compose up -d mysql redis
+#   查看日志:       docker compose logs -f [service]
+#   停止服务:       docker compose down
+#   清理数据:       docker compose down -v
+#
+# 启动流程 (--profile full):
+#   1. mysql/redis 启动并健康检查
+#   2. init 服务执行 migrate + seed 后退出
+#   3. api/file-service 启动
+#   4. gateway 启动（统一入口，包含前端静态文件）
+#
+# 子域名路由架构 (Gateway 按 Host 头分发):
+#   admin.claymo.local:5080 → 后台管理前端
+#   claymo.local:5080       → 前台前端
+#   /api/*                  → API 服务 (反向代理)
+#   /fs/*                   → 文件服务 (反向代理)
+# ================================================
+
+name: claymo
+
+services:
+  # ============================
+  # 基础设施
+  # ============================
+  
+  mysql:
+    image: mysql:8.0
+    container_name: claymo-mysql
+    restart: unless-stopped
+    ports:
+      - "3307:3306"  # Using 3307 to avoid conflict with local MySQL
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-claymo_host}
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+      TZ: Asia/Shanghai
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./infra/mysql/init:/docker-entrypoint-initdb.d:ro
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-123456}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - claymo-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: claymo-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes ${REDIS_PASSWORD:+--requirepass ${REDIS_PASSWORD}}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - claymo-network
+
+  # Kafka (可选 - 文件服务异步消息) - 使用 Confluent 镜像 KRaft 模式
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: claymo-kafka
+    restart: unless-stopped
+    ports:
+      - "9092:9092"
+    environment:
+      # KRaft 模式配置
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - claymo-network
+    profiles:
+      - full
+
+  # ============================
+  # 初始化服务 (migrate + seed)
+  # ============================
+
+  init:
+    build:
+      context: ./backend
+      dockerfile: tools/ClayMo.Tools.Platform/Dockerfile
+    container_name: claymo-init
+    environment:
+      SqlSugar__ConnectionStrings__Default: "Server=mysql;Port=3306;Database=${MYSQL_DATABASE:-claymo_host};Uid=root;Password=${MYSQL_ROOT_PASSWORD:-123456};Charset=utf8mb4"
+      Redis__Configuration: "redis:6379${REDIS_PASSWORD:+,password=${REDIS_PASSWORD}}"
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["dotnet ClayMo.Tools.Platform.dll migrate host && dotnet ClayMo.Tools.Platform.dll seed host"]
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - claymo-network
+    profiles:
+      - full
+
+  # ============================
+  # 应用服务
+  # ============================
+
+  gateway:
+    build:
+      context: .
+      dockerfile: services/gateway/Dockerfile
+    container_name: claymo-gateway
+    restart: unless-stopped
+    ports:
+      - "5080:5080"    # HTTP - 统一入口
+      - "5443:5443"    # HTTPS - 统一入口
+    volumes:
+      - ./infra/cert:/app/cert:ro
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:5080;https://+:5443
+      # 子域名配置
+      Domains__AdminPrefix: admin.
+      # 证书配置
+      Kestrel__Endpoints__Https__Url: https://+:5443
+      Kestrel__Endpoints__Https__Certificate__Path: /app/cert/claymo.local+3.pem
+      Kestrel__Endpoints__Https__Certificate__KeyPath: /app/cert/claymo.local+3-key.pem
+      Kestrel__Endpoints__Http__Url: http://+:5080
+      # CORS（子域名隔离）
+      Cors__Origins__0: http://claymo.local:5080
+      Cors__Origins__1: https://claymo.local:5443
+      Cors__Origins__2: http://admin.claymo.local:5080
+      Cors__Origins__3: https://admin.claymo.local:5443
+      # API 路由
+      ReverseProxy__Clusters__api-cluster__Destinations__api-service__Address: http://api:19001
+      ReverseProxy__Clusters__file-cluster__Destinations__file-service__Address: http://file-service:8889
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - claymo-network
+    profiles:
+      - full
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: claymo-api
+    restart: unless-stopped
+    ports:
+      - "19001:19001"
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:19001
+      # 数据库
+      SqlSugar__ConnectionStrings__Default: "Server=mysql;Port=3306;Database=${MYSQL_DATABASE:-claymo_host};Uid=root;Password=${MYSQL_ROOT_PASSWORD:-123456}"
+      # Redis
+      Redis__Configuration: "redis:6379${REDIS_PASSWORD:+,password=${REDIS_PASSWORD}}"
+      # JWT
+      Jwt__SecretKey: ${JWT_SECRET_KEY:-DevSecretKeyAtLeast32CharactersLong!}
+      # 文件服务 - 使用云端存储（通过环境变量配置）
+      FileService__HuaWeiYun__EndPoint: ${FILE_SERVICE_ENDPOINT:-}
+      FileService__HuaWeiYun__AccessKeyId: ${FILE_SERVICE_ACCESS_KEY:-}
+      FileService__HuaWeiYun__SecretAccessKey: ${FILE_SERVICE_SECRET_KEY:-}
+      FileService__HuaWeiYun__BucketName: ${FILE_SERVICE_BUCKET:-}
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:19001/swagger/index.html"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - claymo-network
+    profiles:
+      - full
+
+  file-service:
+    build:
+      context: .
+      dockerfile: services/file-service/Dockerfile
+    container_name: claymo-file-service
+    restart: unless-stopped
+    ports:
+      - "8889:8889"
+    volumes:
+      - ./services/file-service/etc/file-api.yaml:/app/etc/file-api.yaml:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - claymo-network
+    profiles:
+      - full
+
+# ============================
+# 网络
+# ============================
+networks:
+  claymo-network:
+    driver: bridge
+
+# ============================
+# 数据卷
+# ============================
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  kafka_data:
+    driver: local
+

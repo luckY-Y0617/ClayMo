@@ -1,0 +1,9 @@
+packages:
+  # 前端项目
+  - 'frontend/web'
+  - 'frontend/admin'
+  # 共享包
+  - 'packages/contracts/*'
+  - 'packages/libs/*'
+  - 'packages/sdk/*'
+

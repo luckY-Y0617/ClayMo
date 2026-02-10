@@ -1,0 +1,23 @@
+# 构建产物
+dist/
+coverage/
+
+# 依赖
+node_modules/
+pnpm-lock.yaml
+
+# 后端代码（不用 Prettier 格式化）
+backend/
+services/
+
+# 配置和生成文件
+*.json
+*.yaml
+*.yml
+*.md
+*.min.js
+*.min.css
+
+# 自动生成的类型声明
+auto-imports.d.ts
+components.d.ts

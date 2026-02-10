@@ -1,0 +1,151 @@
+# ================================================
+# ClayMo .gitignore
+# ================================================
+
+# ============================
+# IDE & Editor
+# ============================
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+# ============================
+# .NET
+# ============================
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.cache
+*.log
+*.vspscc
+*.vssscc
+.vs/
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.suo
+*.user
+*.sln.docstates
+
+# ============================
+# Node.js / Frontend
+# ============================
+node_modules/
+dist/
+.vite/
+.nuxt/
+.output/
+.cache/
+.turbo/
+*.local
+*.log*
+pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-store/
+.eslintcache
+.stylelintcache
+
+# ============================
+# Environment & Secrets
+# ============================
+.env
+.env.local
+.env.*.local
+*.env
+!.env.example
+
+# appsettings.json 配置文件（包含敏感信息）
+**/appsettings.json
+**/appsettings.Development.json
+**/appsettings.Production.json
+# 允许 example 文件
+!**/appsettings.example.json
+
+# Go 服务配置文件
+services/file-service/etc/file-api.yaml
+# 允许 example 文件
+!services/file-service/etc/file-api.yaml.example
+
+# ============================
+# Certificates
+# ============================
+infra/cert/*.pem
+infra/cert/*.key
+infra/cert/*.crt
+infra/cert/*.pfx
+!infra/cert/.gitkeep
+
+# ============================
+# Database
+# ============================
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+
+# ============================
+# Docker & Logs
+# ============================
+docker-compose.override.yml
+*.log
+logs/
+*.log.*
+
+# ============================
+# OS
+# ============================
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.swp
+*.swo
+*~
+
+# ============================
+# Backup & Temp
+# ============================
+*.bak
+*.tmp
+*.temp
+*.old
+*_backup
+*_bak
+
+# ============================
+# Build Artifacts
+# ============================
+*.nupkg
+*.snupkg
+TestResults/
+BenchmarkDotNet.Artifacts/
+
+# ============================
+# Go (File Service)
+# ============================
+*.exe
+*.exe~
+*.test
+*.out
+vendor/
+
+# ============================
+# Project Specific
+# ============================
+# 终端状态文件（Cursor 生成）
+terminals/
+
+# 临时文档（已删除的开发笔记）
+Todo.md
+*.draft.md
+*.wip.md

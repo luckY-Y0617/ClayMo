@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="10.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.2" />
+      <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+      <PackageReference Include="Volo.Abp.Autofac" Version="10.0.0" />
+      <PackageReference Include="Volo.Abp.Core" Version="10.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\framework\ClayMo.Framework.SqlSugar\ClayMo.Framework.SqlSugar.csproj" />
+      <ProjectReference Include="..\..\framework\ClayMo.Framework.SqlSugar.Abstractions\ClayMo.Framework.SqlSugar.Abstractions.csproj" />
+      <ProjectReference Include="..\..\modules\tenantmanagement\ClayMo.Module.TenantManagement.Application\ClayMo.Module.TenantManagement.Application.csproj" />
+      <ProjectReference Include="..\..\modules\tenantmanagement\ClayMo.Module.TenantManagement.Domain.Shared\ClayMo.Module.TenantManagement.Domain.Shared.csproj" />
+      <ProjectReference Include="..\..\modules\tenantmanagement\ClayMo.Module.TenantManagement.Domain\ClayMo.Module.TenantManagement.Domain.csproj" />
+      <ProjectReference Include="..\..\src\ClayMo.Abp.SqlSugar\ClayMo.Abp.SqlSugar.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="appsettings.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="appsettings.Development.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+
+</Project>

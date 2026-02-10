@@ -1,0 +1,253 @@
+syntax = "v1"
+
+info (
+	title:   "File Service API"
+	desc:    "File metadata + upload sessions + private bucket stable access (redirect/stream)."
+	author:  "ClayMo"
+	email:   "claymo@example.com"
+	version: "v3.0"
+)
+
+// ============================================================================
+// Upload Session API (新流程)
+// 核心原则：
+// 1. 上传过程的唯一事实源是 UploadSession
+// 2. File 只在上传完成后才创建
+// 3. URL 永远不是 File 的一部分
+// ============================================================================
+// -------------------- Protected APIs (need JWT) --------------------
+@server (
+	jwt:        Auth
+	middleware: JwtUserContext
+	prefix:     /fs
+	group:      files
+)
+service file-api {
+	// ---------- Upload Session Lifecycle ----------
+	// Step 1: 创建上传会话（不返回 fileId；dedup 命中时才返回 fileId）
+	@handler CreateUploadSessionHandler
+	post /uploads/sessions (CreateUploadSessionRequest) returns (CreateUploadSessionResponse)
+
+	// Step 3: 完成上传（校验+合并，不返回 contentUrl）
+	@handler CompleteUploadHandler
+	post /uploads/sessions/:sessionId/complete (CompleteUploadRequest) returns (CompleteUploadResponse)
+
+	// Step 4: Finalize 创建 File（fileId 首次出现）
+	@handler FinalizeUploadHandler
+	post /uploads/sessions/:sessionId/finalize (FinalizeUploadRequest) returns (FinalizeUploadResponse)
+
+	// 批量分片预签名（支持大文件 1000+ parts）
+	@handler PresignPartsHandler
+	post /uploads/sessions/:sessionId/parts/presign (PresignPartsRequest) returns (PresignPartsResponse)
+
+	// 上传进度
+	@handler UploadProgressHandler
+	get /uploads/sessions/:sessionId/progress (UploadProgressRequest) returns (UploadProgressResponse)
+
+	// 取消上传
+	@handler AbortUploadHandler
+	post /uploads/sessions/:sessionId/abort (AbortUploadRequest) returns (AbortUploadResponse)
+
+	// ---------- Files (文件管理) ----------
+	@handler ListFilesHandler
+	get /files (ListFilesRequest) returns (ListFilesResponse)
+
+	@handler GetFileHandler
+	get /files/:fileId (GetFileRequest) returns (GetFileResponse)
+
+	@handler DeleteFileHandler
+	delete /files/:fileId (DeleteFileRequest) returns (DeleteFileResponse)
+}
+
+// -------------------- Stable access for private bucket --------------------
+// IMPORTANT:
+// - 该接口用于 <img src="/fs/files/{fileId}/content">，浏览器不会携带 Authorization header
+// - 因此不挂 go-zero 的 jwt: Auth，避免 401
+// - 你应在 handler 内做“Cookie 或 Header”的鉴权，然后 307/302 redirect 到短期签名 URL
+@server (
+	middleware: JwtUserContext
+	prefix:     /fs
+	group:      files
+)
+service file-api {
+	// 唯一稳定访问入口：返回 307/302 重定向到短期签名 URL
+	// 支持参数：?disposition=inline|attachment&w=&h=&q=&variant=
+	@handler GetFileContentHandler
+	get /files/:fileId/content (GetFileContentRequest)
+}
+
+// ============================================================================
+// Types
+// ============================================================================
+// -------------------- Upload Session --------------------
+// Step 1: CreateUploadSession
+type CreateUploadSessionRequest {
+	IdempotencyKey     string `json:"idempotencyKey,omitempty"` // 幂等 key（前端生成 UUID）
+	FileName           string `json:"fileName"`
+	FileSize           int64  `json:"fileSize"`
+	FileType           string `json:"fileType,omitempty"`
+	BizType            string `json:"bizType,omitempty"`
+	FileHash           string `json:"fileHash,omitempty"`
+	Mode               string `json:"mode,omitempty"` // auto|single|multipart
+	PreferredChunkSize int64  `json:"preferredChunkSize,omitempty"`
+}
+
+type CreateUploadSessionResponse {
+	SessionId  string            `json:"sessionId,omitempty"`
+	Mode       string            `json:"mode,omitempty"`
+	ObjectKey  string            `json:"objectKey,omitempty"`
+	UploadUrl  string            `json:"uploadUrl,omitempty"` // single mode
+	Headers    map[string]string `json:"headers,omitempty"` // single mode
+	UploadId   string            `json:"uploadId,omitempty"` // multipart mode
+	ChunkSize  int64             `json:"chunkSize,omitempty"` // multipart mode
+	TotalParts int               `json:"totalParts,omitempty"` // multipart mode
+	ExpiresAt  int64             `json:"expiresAt,omitempty"` // Unix seconds
+	HitType    string            `json:"hitType,omitempty"` // none|idempotent|dedup
+	FileId     string            `json:"fileId,omitempty"` // only when dedup hit
+	Status     string            `json:"status,omitempty"` // Initiated|Uploading|Completed|Aborted|Expired|Failed
+	Message    string            `json:"message,omitempty"`
+}
+
+// Step 3: CompleteUpload
+type CompleteUploadRequest {
+	SessionId string           `path:"sessionId"`
+	Parts     []UploadPartInfo `json:"parts,omitempty"` // multipart mode (required)
+}
+
+type CompleteUploadResponse {
+	SessionId string `json:"sessionId"`
+	Status    string `json:"status"` // Completed
+	Message   string `json:"message,omitempty"`
+}
+
+// Step 4: FinalizeUpload
+type FinalizeUploadRequest {
+	SessionId string `path:"sessionId"`
+}
+
+type FinalizeUploadResponse {
+	FileId   string `json:"fileId"`
+	Status   string `json:"status"` // Available
+	FileType string `json:"fileType"`
+	FileSize int64  `json:"fileSize"`
+	Message  string `json:"message,omitempty"`
+}
+
+// 批量分片预签名
+type PresignPartsRequest {
+	SessionId   string `path:"sessionId"`
+	PartNumbers []int  `json:"parts"` // e.g. [1,2,3,4,5]
+}
+
+type PresignPartsResponse {
+	Parts []PresignedPart `json:"parts"`
+}
+
+type PresignedPart {
+	PartNumber int               `json:"partNumber"`
+	UploadUrl  string            `json:"uploadUrl"`
+	Headers    map[string]string `json:"headers,omitempty"`
+	ExpiresAt  int64             `json:"expiresAt"` // Unix seconds
+}
+
+// 取消上传
+type AbortUploadRequest {
+	SessionId string `path:"sessionId"`
+}
+
+type AbortUploadResponse {
+	SessionId string `json:"sessionId"`
+	Success   bool   `json:"success"`
+	Message   string `json:"message,omitempty"`
+}
+
+// 上传进度
+type UploadProgressRequest {
+	SessionId string `path:"sessionId"`
+}
+
+type UploadProgressResponse {
+	SessionId     string `json:"sessionId"`
+	Mode          string `json:"mode"`
+	Status        string `json:"status"`
+	UploadedParts []int  `json:"uploadedParts,omitempty"`
+	TotalParts    int    `json:"totalParts,omitempty"`
+	Progress      int    `json:"progress,omitempty"`
+}
+
+type UploadPartInfo {
+	PartNumber int    `json:"partNumber"`
+	ETag       string `json:"etag"`
+}
+
+// -------------------- Files --------------------
+type PageRequest {
+	Page     int `form:"page,default=1"`
+	PageSize int `form:"pageSize,default=20"`
+}
+
+type PageResponse {
+	Page     int `json:"page"`
+	PageSize int `json:"pageSize"`
+	Total    int `json:"total"`
+}
+
+type ListFilesRequest {
+	PageRequest
+	BizType     string `form:"bizType,optional"`
+	Keyword     string `form:"keyword,optional"`
+	Status      string `form:"status,optional"`
+	Mime        string `form:"mime,optional"`
+	OwnerId     string `form:"ownerId,optional"`
+	CreatedFrom string `form:"createdFrom,optional"`
+	CreatedTo   string `form:"createdTo,optional"`
+}
+
+type ListFilesResponse {
+	PageResponse
+	Items []FileItem `json:"items"`
+}
+
+type FileItem {
+	FileId     string `json:"fileId"`
+	FileName   string `json:"fileName"`
+	FileSize   int64  `json:"fileSize"`
+	FileType   string `json:"fileType"`
+	BizType    string `json:"bizType"`
+	FileHash   string `json:"fileHash"`
+	Status     string `json:"status"`
+	Width      int    `json:"width,omitempty"`
+	Height     int    `json:"height,omitempty"`
+	DurationMs int64  `json:"durationMs,omitempty"`
+	CreatedAt  int64  `json:"createdAt"`
+	UpdatedAt  int64  `json:"updatedAt"`
+}
+
+type GetFileRequest {
+	FileId string `path:"fileId"`
+}
+
+type GetFileResponse {
+	FileItem
+}
+
+type DeleteFileRequest {
+	FileId string `path:"fileId"`
+	Hard   bool   `form:"hard,optional"`
+}
+
+type DeleteFileResponse {
+	Success bool   `json:"success"`
+	Message string `json:"message,omitempty"`
+}
+
+// Stable content access request
+type GetFileContentRequest {
+	FileId      string `path:"fileId"`
+	Disposition string `form:"disposition,optional"` // inline|attachment, default: inline
+	Variant     string `form:"variant,optional"` // 预留：origin|thumb_300w|...
+	W           int    `form:"w,optional"` // 预留：图片宽度
+	H           int    `form:"h,optional"` // 预留：图片高度
+	Q           int    `form:"q,optional"` // 预留：图片质量
+}
+
