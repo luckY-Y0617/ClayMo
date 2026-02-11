@@ -1,0 +1,239 @@
+# ================================================
+# ClayMo 代码质量检查 - 安全扫描与依赖分析
+# ================================================
+name: Code Quality & Security
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # 每周一凌晨 2 点执行（UTC 时间）
+    - cron: '0 2 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+
+jobs:
+  # ========================================
+  # CodeQL 安全分析（支持多语言）
+  # ========================================
+  codeql-analysis:
+    name: CodeQL 安全分析
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['javascript', 'csharp', 'go']
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: 初始化 CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-and-quality
+      
+      # JavaScript/TypeScript 不需要构建
+      - name: 自动构建 (C#/Go)
+        if: matrix.language != 'javascript'
+        uses: github/codeql-action/autobuild@v3
+      
+      - name: 执行 CodeQL 分析
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+
+  # ========================================
+  # Docker 镜像安全扫描（Trivy）
+  # ========================================
+  docker-security-scan:
+    name: Docker 镜像安全扫描
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'schedule'
+    strategy:
+      matrix:
+        service: [backend, gateway, file-service]
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: 构建 ${{ matrix.service }} 镜像
+        run: |
+          case "${{ matrix.service }}" in
+            backend)
+              docker build -t claymo-${{ matrix.service }}:scan -f backend/Dockerfile backend/
+              ;;
+            gateway)
+              docker build -t claymo-${{ matrix.service }}:scan -f services/gateway/Dockerfile .
+              ;;
+            file-service)
+              docker build -t claymo-${{ matrix.service }}:scan -f services/file-service/Dockerfile .
+              ;;
+          esac
+      
+      - name: Trivy 漏洞扫描 - ${{ matrix.service }}
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: claymo-${{ matrix.service }}:scan
+          format: 'sarif'
+          output: 'trivy-${{ matrix.service }}.sarif'
+          severity: 'CRITICAL,HIGH'
+      
+      - name: 上传 Trivy 扫描结果
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-${{ matrix.service }}.sarif'
+          category: "trivy-${{ matrix.service }}"
+
+  # ========================================
+  # 依赖项漏洞检查
+  # ========================================
+  dependency-check:
+    name: 依赖项安全检查
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: "前端依赖"
+            path: "."
+            manager: "pnpm"
+          - name: ".NET 依赖"
+            path: "backend"
+            manager: "nuget"
+          - name: "Go 依赖"
+            path: "services/file-service"
+            manager: "gomod"
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: 依赖审计 - ${{ matrix.name }}
+        run: |
+          echo "🔍 检查 ${{ matrix.name }}..."
+          case "${{ matrix.manager }}" in
+            pnpm)
+              cd ${{ matrix.path }}
+              npm install -g pnpm@9
+              pnpm audit --audit-level=moderate || true
+              ;;
+            nuget)
+              cd ${{ matrix.path }}
+              dotnet list package --vulnerable --include-transitive || true
+              ;;
+            gomod)
+              cd ${{ matrix.path }}
+              go list -json -m all | docker run --rm -i sonatype/nancy:latest sleuth || true
+              ;;
+          esac
+
+  # ========================================
+  # 代码复杂度分析
+  # ========================================
+  code-complexity:
+    name: 代码复杂度分析
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: 前端代码复杂度检查
+        run: |
+          echo "📊 分析前端代码复杂度..."
+          npx eslint frontend/ --format=compact || true
+      
+      - name: 后端代码度量
+        run: |
+          echo "📊 分析后端代码度量..."
+          # 可以集成 SonarQube 或其他工具
+          echo "暂未配置后端代码度量工具"
+
+  # ========================================
+  # License 合规检查
+  # ========================================
+  license-check:
+    name: 开源协议合规检查
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: 前端 License 检查
+        run: |
+          echo "⚖️ 检查前端依赖协议..."
+          npm install -g pnpm@9
+          pnpm install --frozen-lockfile
+          npx license-checker --summary || true
+      
+      - name: Go License 检查
+        run: |
+          echo "⚖️ 检查 Go 依赖协议..."
+          cd services/file-service
+          go install github.com/google/go-licenses@latest
+          go-licenses report ./... || true
+
+  # ========================================
+  # Secrets 泄露扫描
+  # ========================================
+  secret-scan:
+    name: 密钥泄露扫描
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: TruffleHog 密钥扫描
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
+
+  # ========================================
+  # 质量报告汇总
+  # ========================================
+  quality-report:
+    name: 生成质量报告
+    runs-on: ubuntu-latest
+    needs: [codeql-analysis, dependency-check, license-check, secret-scan]
+    if: always()
+    
+    steps:
+      - name: 汇总质量检查结果
+        run: |
+          echo "================================================"
+          echo "📊 代码质量检查报告"
+          echo "================================================"
+          echo "CodeQL: ${{ needs.codeql-analysis.result }}"
+          echo "依赖检查: ${{ needs.dependency-check.result }}"
+          echo "License 检查: ${{ needs.license-check.result }}"
+          echo "密钥扫描: ${{ needs.secret-scan.result }}"
+          echo "================================================"
+          
+          # 如果有任何失败，标记为警告但不阻塞流程
+          if [[ "${{ needs.codeql-analysis.result }}" == "failure" ]] || \
+             [[ "${{ needs.dependency-check.result }}" == "failure" ]] || \
+             [[ "${{ needs.secret-scan.result }}" == "failure" ]]; then
+            echo "⚠️ 发现潜在问题，请检查详细报告"
+          else
+            echo "✅ 所有质量检查通过"
+          fi
+

@@ -1,0 +1,149 @@
+# ================================================
+# Dependabot 自动依赖更新配置
+# ================================================
+# 功能：
+#   - 自动检测并创建 PR 更新依赖
+#   - 支持多种包管理器
+#   - 定期检查安全漏洞
+# ================================================
+version: 2
+updates:
+  # ========================================
+  # 前端依赖 (pnpm)
+  # ========================================
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "02:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "${{ github.repository_owner }}"
+    commit-message:
+      prefix: "chore(deps)"
+    labels:
+      - "dependencies"
+      - "frontend"
+    groups:
+      # 将 Vue 生态依赖合并到一个 PR
+      vue:
+        patterns:
+          - "vue*"
+          - "@vue/*"
+      # Element Plus 相关
+      element-plus:
+        patterns:
+          - "element-plus"
+          - "@element-plus/*"
+      # Vite 相关
+      vite:
+        patterns:
+          - "vite*"
+          - "@vitejs/*"
+
+  # ========================================
+  # 后端依赖 (.NET)
+  # ========================================
+  - package-ecosystem: "nuget"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "${{ github.repository_owner }}"
+    commit-message:
+      prefix: "chore(deps)"
+    labels:
+      - "dependencies"
+      - "backend"
+
+  # ========================================
+  # Go 依赖 (File Service)
+  # ========================================
+  - package-ecosystem: "gomod"
+    directory: "/services/file-service"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "${{ github.repository_owner }}"
+    commit-message:
+      prefix: "chore(deps)"
+    labels:
+      - "dependencies"
+      - "go"
+
+  # ========================================
+  # Go 公共库依赖
+  # ========================================
+  - package-ecosystem: "gomod"
+    directory: "/packages/libs/go-common"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:30"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "${{ github.repository_owner }}"
+    commit-message:
+      prefix: "chore(deps)"
+    labels:
+      - "dependencies"
+      - "go"
+      - "shared"
+
+  # ========================================
+  # Docker 基础镜像
+  # ========================================
+  - package-ecosystem: "docker"
+    directory: "/backend"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(docker)"
+    labels:
+      - "docker"
+      - "backend"
+
+  - package-ecosystem: "docker"
+    directory: "/services/gateway"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(docker)"
+    labels:
+      - "docker"
+      - "gateway"
+
+  - package-ecosystem: "docker"
+    directory: "/services/file-service"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(docker)"
+    labels:
+      - "docker"
+      - "go"
+
+  # ========================================
+  # GitHub Actions
+  # ========================================
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(ci)"
+    labels:
+      - "ci/cd"
+      - "github-actions"
+
