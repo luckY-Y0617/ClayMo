@@ -5,10 +5,6 @@ using ClayMo.Module.Identity.Domain.Roles;
 using ClayMo.Module.Identity.Domain.Roles.Repositories;
 using ClayMo.Module.Identity.Domain.Shared.Enums;
 using ClayMo.Module.Identity.Domain.Users;
-using ClayMo.Module.TenantManagement.Domain;
-using ClayMo.Module.TenantManagement.Domain.Repositories;
-using Microsoft.Extensions.Logging;
-using SqlSugar;
 using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.MultiTenancy;
@@ -29,13 +25,10 @@ public sealed class HostDataSeedContributor : IDataSeedContributor, ITransientDe
     private readonly ISqlSugarRepository<RolePermission, Guid> _rolePermissionRepository;
     private readonly ISqlSugarRepository<UserRole, Guid> _userRoleRepository;
     private readonly ISqlSugarRepository<UserProfile, Guid> _userProfileRepository;
-    private readonly TenantManager _tenantManager;
-    private readonly ISqlSugarTenantRepository _tenantRepository;
     private readonly IPermissionDefinitionManager _definitionManager;
     private readonly ICurrentTenant _currentTenant;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
-    private readonly ILogger<HostDataSeedContributor> _logger;
 
     public HostDataSeedContributor(
         IRoleRepository roleRepository,
@@ -43,26 +36,20 @@ public sealed class HostDataSeedContributor : IDataSeedContributor, ITransientDe
         ISqlSugarRepository<RolePermission, Guid> rolePermissionRepository,
         ISqlSugarRepository<UserRole, Guid> userRoleRepository,
         ISqlSugarRepository<UserProfile, Guid> userProfileRepository,
-        TenantManager tenantManager,
-        ISqlSugarTenantRepository tenantRepository,
         IPermissionDefinitionManager definitionManager,
         ICurrentTenant currentTenant,
         IPasswordHasher passwordHasher,
-        IUnitOfWorkManager unitOfWorkManager,
-        ILogger<HostDataSeedContributor> logger)
+        IUnitOfWorkManager unitOfWorkManager)
     {
         _roleRepository = roleRepository;
         _userRepository = userRepository;
         _rolePermissionRepository = rolePermissionRepository;
         _userRoleRepository = userRoleRepository;
         _userProfileRepository = userProfileRepository;
-        _tenantManager = tenantManager;
-        _tenantRepository = tenantRepository;
         _definitionManager = definitionManager;
         _currentTenant = currentTenant;
         _passwordHasher = passwordHasher;
         _unitOfWorkManager = unitOfWorkManager;
-        _logger = logger;
     }
 
     public async Task SeedAsync(DataSeedContext context)
@@ -75,8 +62,6 @@ public sealed class HostDataSeedContributor : IDataSeedContributor, ITransientDe
         using (_currentTenant.Change(null))
         {
             using var uow = _unitOfWorkManager.Begin(isTransactional: false);
-
-            await SeedDefaultTenantAsync();
 
             var role = await UpsertRoleAsync(
                 roleCode: "PlatformAdmin",
@@ -101,60 +86,6 @@ public sealed class HostDataSeedContributor : IDataSeedContributor, ITransientDe
             await CleanupRolePermissionsAsync(definedPermissionCodes);
 
             await uow.CompleteAsync();
-        }
-    }
-
-    private async Task SeedDefaultTenantAsync(CancellationToken cancellationToken = default)
-    {
-        const string defaultTenantName = "Default";
-        const DbType defaultDbType = DbType.MySql;
-        const string defaultTenantConnectionString =
-            "Server=127.0.0.1;Port=3306;Database=ClayMo_Default;Uid=root;Pwd=123456;";
-
-        var existing = await _tenantRepository.FindAsync(
-            x => x.Name == defaultTenantName,
-            includeDetails: true,
-            cancellationToken);
-
-        var db = await _tenantRepository.GetDbContextAsync();
-
-        if (existing == null)
-        {
-            _logger.LogInformation("默认租户不存在，正在创建…");
-
-            var tenant =  _tenantManager.CreateAsync(
-                name: defaultTenantName,
-                dbType: defaultDbType,
-                defaultConnectionString: defaultTenantConnectionString,
-                extraConnectionStrings: null);
-
-            await db.Client.InsertNav(tenant)
-                .Include(t => t.ConnectionStrings)
-                .ExecuteCommandAsync();
-
-            _logger.LogInformation("默认租户初始化完成");
-            return;
-        }
-
-        if (existing.ConnectionStrings == null ||
-            !existing.ConnectionStrings.Any(cs =>
-                cs.Name.Equals("Default", StringComparison.OrdinalIgnoreCase)))
-        {
-            _logger.LogWarning("默认租户存在，但缺少默认连接串，正在补齐…");
-
-            existing.AddOrUpdateConnectionString(
-                "Default",
-                defaultTenantConnectionString);
-
-            await db.Client.UpdateNav(existing)
-                .Include(t => t.ConnectionStrings)
-                .ExecuteCommandAsync();
-
-            _logger.LogInformation("默认连接串已补齐");
-        }
-        else
-        {
-            _logger.LogDebug("默认租户已存在且配置完整，跳过");
         }
     }
 

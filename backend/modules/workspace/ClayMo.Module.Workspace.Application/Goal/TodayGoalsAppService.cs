@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using ClayMo.Framework.SqlSugar.Abstractions;
 using ClayMo.Module.Workspace.Application.Contracts.Goal;
 using ClayMo.Module.Workspace.Application.Contracts.Goal.Dtos;
 using ClayMo.Module.Workspace.Domain.Goal;
-using ClayMo.Module.Workspace.Domain.Goal.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Volo.Abp;
@@ -21,16 +16,16 @@ namespace ClayMo.Module.Workspace.Application.Goal;
 [Route("/api/app/workspace/today/goals")]
 public class TodayGoalsAppService : ApplicationService, ITodayGoalsAppService
 {
-    private readonly IGoalDefinitionRepository _defs;
-    private readonly IGoalDailyProgressRepository _dailys;
-    private readonly ICheckInRepository _checks;
+    private readonly ISqlSugarRepository<GoalDefinition, Guid> _defs;
+    private readonly ISqlSugarRepository<GoalDailyProgress, Guid> _dailys;
+    private readonly ISqlSugarRepository<CheckIn, Guid> _checks;
     private readonly IClock _clock;
     private readonly ICurrentUser _currentUser;
 
     public TodayGoalsAppService(
-        IGoalDefinitionRepository defs,
-        IGoalDailyProgressRepository dailys,
-        ICheckInRepository checks,
+        ISqlSugarRepository<GoalDefinition, Guid> defs,
+        ISqlSugarRepository<GoalDailyProgress, Guid> dailys,
+        ISqlSugarRepository<CheckIn, Guid> checks,
         IClock clock,
         ICurrentUser currentUser)
     {
@@ -61,15 +56,16 @@ public class TodayGoalsAppService : ApplicationService, ITodayGoalsAppService
     public virtual async Task<List<GoalDefinitionDto>> GetListAsync(CancellationToken ct = default)
     {
         var userId = _currentUser.GetId();
-        var list = await _defs.GetActiveListAsync(userId, ct);
-        return ObjectMapper.Map<List<GoalDefinition>, List<GoalDefinitionDto>>(list);;
+        var list = await _defs.GetListAsync(x => x.UserId == userId && x.IsActive, false, ct);
+        return ObjectMapper.Map<List<GoalDefinition>, List<GoalDefinitionDto>>(list);
     }
 
     [HttpPut("{id:guid}")]
     public virtual async Task<GoalDefinitionDto> UpdateAsync(Guid id, [FromBody] UpdateGoalDefinitionInput input, CancellationToken ct = default)
     {
         var userId = _currentUser.GetId();
-        var entity = await _defs.FindAsync(id, userId, ct) ?? throw new BusinessException("Workspace:GoalNotFound");
+        var entity = await _defs.FindAsync(x => x.Id == id && x.UserId == userId,false, ct) 
+                     ?? throw new BusinessException("Workspace:GoalNotFound");
 
         entity.SetTitle(input.Title);
         entity.SetMode(input.Mode, input.TargetCount);
@@ -77,14 +73,14 @@ public class TodayGoalsAppService : ApplicationService, ITodayGoalsAppService
         entity.SetActive(input.IsActive);
 
         await _defs.UpdateAsync(entity, autoSave: true, ct);
-        return ObjectMapper.Map<GoalDefinition, GoalDefinitionDto>(entity);;
+        return ObjectMapper.Map<GoalDefinition, GoalDefinitionDto>(entity);
     }
 
     [HttpDelete("{id:guid}")]
     public virtual async Task DeleteAsync(Guid id, CancellationToken ct = default)
     {
         var userId = _currentUser.GetId();
-        var entity = await _defs.FindAsync(id, userId, ct) 
+        var entity = await _defs.FindAsync(x => x.Id == id && x.UserId == userId,false, ct) 
                      ?? throw new BusinessException("Workspace:GoalNotFound");
         await _defs.DeleteAsync(entity, autoSave: true, ct);
     }
@@ -116,7 +112,8 @@ public class TodayGoalsAppService : ApplicationService, ITodayGoalsAppService
     {
         var d = (input.Date ?? _clock.Now).Date;
         var userId = _currentUser.GetId();
-        var def = await _defs.FindAsync(goalId, userId, ct) ?? throw new BusinessException("Workspace:GoalNotFound");
+        var def = await _defs.FindAsync(x => x.Id == goalId && x.UserId == userId, false,ct) 
+                  ?? throw new BusinessException("Workspace:GoalNotFound");
 
         var prog = await GetOrCreateProgressAsync(def.Id, d, ct);
 
@@ -151,8 +148,9 @@ public class TodayGoalsAppService : ApplicationService, ITodayGoalsAppService
     private async Task<List<(GoalDefinition Def, GoalDailyProgress? Prog)>> GetOrBuildProgressAsync(DateTime date, CancellationToken ct)
     {
         var userId = _currentUser.GetId();
-        var defs = await _defs.GetActiveListAsync(userId, ct);
-        var progs = await _dailys.GetByDateAsync(userId, date, ct);
+        var defs = await _defs.GetListAsync(x => x.UserId == userId && x.IsActive,false, ct);
+        var progs = await _dailys.GetListAsync(
+            x => x.CreatorId == userId && x.Date == date, false, ct);
 
         var dict = progs.ToDictionary(x => x.GoalId, x => x);
         var list = new List<(GoalDefinition, GoalDailyProgress?)>(defs.Count);
@@ -187,7 +185,8 @@ public class TodayGoalsAppService : ApplicationService, ITodayGoalsAppService
     private async Task<GoalDailyProgress> GetOrCreateProgressAsync(Guid goalId, DateTime date, CancellationToken ct)
     {
         var userId = _currentUser.GetId();
-        var existing = await _dailys.FindAsync(userId, goalId, date, ct);
+        var existing = await _dailys.FindAsync(
+            x => x.CreatorId == userId && x.GoalId == goalId && x.Date == date, false,ct);
         if (existing != null) return existing;
 
         var created = new GoalDailyProgress(goalId, date);

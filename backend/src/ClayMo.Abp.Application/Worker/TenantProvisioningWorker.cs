@@ -134,7 +134,7 @@ public sealed class TenantProvisioningWorker : BackgroundService
         var migrationRunner = sp.GetRequiredService<IMigrationRunner>();
         var dataSeeder = sp.GetRequiredService<IDataSeeder>();
 
-        // 关键：Tenant scope + requiresNew UoW
+        // Tenant scope + requiresNew UoW
         using (var uow = uowManager.Begin(requiresNew: true, isTransactional: false))
         using (currentTenant.Change(tenantId))
         {

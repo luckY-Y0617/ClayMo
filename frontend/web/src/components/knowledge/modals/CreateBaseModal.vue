@@ -22,24 +22,6 @@
     <!-- 内容 -->
     <template #body>
       <form class="modal-form" @submit.prevent="handleSubmit">
-        <!-- 图标选择 -->
-        <div class="form-item">
-          <label class="form-label">图标</label>
-          <div class="icon-picker">
-            <button
-              v-for="icon in iconOptions"
-              :key="icon.key"
-              type="button"
-              class="icon-option"
-              :class="{ active: form.icon === icon.key }"
-              :title="icon.label"
-              @click="form.icon = icon.key"
-            >
-              <span class="icon-emoji">{{ icon.emoji }}</span>
-            </button>
-          </div>
-        </div>
-
         <!-- 知识库名称 -->
         <div class="form-item">
           <label class="form-label required">知识库名称</label>
@@ -79,18 +61,94 @@
           <label class="form-label">可见性</label>
           <div class="visibility-options">
             <button
-              v-for="option in visibilityOptions"
-              :key="option.value"
               type="button"
               class="visibility-option"
-              :class="{ active: form.visibility === option.value }"
-              @click="form.visibility = option.value"
+              :class="{ active: form.visibility === 0 }"
+              @click="selectVisibility(0)"
             >
-              <span class="visibility-icon">{{ option.icon }}</span>
+              <span class="visibility-icon">🔒</span>
               <div class="visibility-text">
-                <span class="visibility-label">{{ option.label }}</span>
-                <span class="visibility-desc">{{ option.description }}</span>
+                <span class="visibility-label">私有</span>
+                <span class="visibility-desc">仅自己可见</span>
               </div>
+            </button>
+            <button
+              v-if="hasTeams"
+              type="button"
+              class="visibility-option"
+              :class="{ active: form.visibility === 1 }"
+              @click="selectVisibility(1)"
+            >
+              <span class="visibility-icon">👥</span>
+              <div class="visibility-text">
+                <span class="visibility-label">团队可见</span>
+                <span class="visibility-desc">团队成员可见</span>
+              </div>
+            </button>
+          </div>
+          
+          <!-- 团队选择下拉框 -->
+          <div v-if="form.visibility === 1 && hasTeams" class="team-select-wrapper">
+            <div class="custom-select-wrapper">
+              <button
+                ref="teamSelectRef"
+                type="button"
+                class="custom-select"
+                :class="{ 'is-open': teamDropdownOpen }"
+                @click="toggleTeamDropdown"
+              >
+                <span class="select-text">
+                  {{ getTeamName(form.teamId) || '选择团队' }}
+                </span>
+                <svg class="select-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path
+                    d="M3 4.5L6 7.5L9 4.5"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+              <Teleport to="body">
+                <Transition name="dropdown-fade">
+                  <div
+                    v-if="teamDropdownOpen"
+                    ref="teamDropdownRef"
+                    class="custom-dropdown fixed-dropdown"
+                    :style="teamDropdownStyle"
+                  >
+                    <button
+                      v-for="team in availableTeams"
+                      :key="team.id"
+                      type="button"
+                      class="dropdown-option"
+                      :class="{ active: form.teamId === team.id }"
+                      @click="selectTeam(team.id)"
+                    >
+                      {{ team.name || team.displayName }}
+                    </button>
+                  </div>
+                </Transition>
+              </Teleport>
+            </div>
+          </div>
+        </div>
+
+        <!-- 图标选择 -->
+        <div class="form-item">
+          <label class="form-label">图标</label>
+          <div class="icon-picker">
+            <button
+              v-for="icon in iconOptions"
+              :key="icon.key"
+              type="button"
+              class="icon-option"
+              :class="{ active: form.icon === icon.key }"
+              :title="icon.label"
+              @click="form.icon = icon.key"
+            >
+              <span class="icon-emoji">{{ icon.emoji }}</span>
             </button>
           </div>
         </div>
@@ -129,8 +187,13 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, watch } from 'vue'
+import { reactive, ref, watch, computed, nextTick, onUnmounted, type CSSProperties } from 'vue'
 import BaseModal from './BaseModal.vue'
+import { useTeamStore } from '@/stores/team'
+
+// ========================================
+// 数据定义
+// ========================================
 
 // 图标选项
 const iconOptions = [
@@ -142,28 +205,6 @@ const iconOptions = [
   { key: 'icon_folder', emoji: '📁', label: '文件夹' },
   { key: 'icon_note', emoji: '📝', label: '笔记' },
   { key: 'icon_rocket', emoji: '🚀', label: '项目' },
-]
-
-// 可见性选项
-const visibilityOptions = [
-  {
-    value: 0,
-    label: '私有',
-    icon: '🔒',
-    description: '仅自己可见',
-  },
-  {
-    value: 1,
-    label: '团队可见',
-    icon: '👥',
-    description: '团队成员可见',
-  },
-  {
-    value: 2,
-    label: '公开',
-    icon: '🌐',
-    description: '所有人可见',
-  },
 ]
 
 interface Props {
@@ -178,20 +219,143 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  submit: [payload: { name: string; description: string; icon: string; visibility: number }]
+  submit: [payload: { name: string; description: string; icon: string; visibility: number; teamId?: string }]
 }>()
 
-// Form State
+// ========================================
+// 团队相关
+// ========================================
+
+const teamStore = useTeamStore()
+
+// 计算属性：是否有团队
+const hasTeams = computed(() => {
+  return teamStore.teams && teamStore.teams.length > 0
+})
+
+// 计算属性：可用的团队列表
+const availableTeams = computed(() => {
+  return teamStore.teams || []
+})
+
+// 获取团队名称
+const getTeamName = (teamId: string | null): string => {
+  if (!teamId) return ''
+  const team = availableTeams.value.find(t => t.id === teamId || t.teamId === teamId)
+  return team?.name || team?.displayName || ''
+}
+
+// ========================================
+// 表单状态
+// ========================================
+
 const form = reactive({
   name: '',
   description: '',
   icon: 'icon_default',
   visibility: 0,
+  teamId: '',
 })
 
 const nameError = ref('')
 
-// Validation
+// ========================================
+// 下拉框状态
+// ========================================
+
+const teamDropdownOpen = ref(false)
+const teamSelectRef = ref<HTMLElement | null>(null)
+const teamDropdownRef = ref<HTMLElement | null>(null)
+const teamDropdownStyle = ref<CSSProperties>({})
+
+// ========================================
+// 下拉框辅助函数
+// ========================================
+
+const closeAllDropdowns = () => {
+  teamDropdownOpen.value = false
+}
+
+const calculateDropdownPosition = (
+  selectEl: HTMLElement | null,
+  dropdownEl: HTMLElement | null
+): CSSProperties => {
+  if (!selectEl || !dropdownEl) return {}
+
+  const rect = selectEl.getBoundingClientRect()
+  const dropdownRect = dropdownEl.getBoundingClientRect()
+
+  let top = rect.bottom + 6
+  let left = rect.left
+  const width = rect.width
+
+  if (left + width > window.innerWidth - 20) {
+    left = window.innerWidth - width - 20
+  }
+
+  if (top + dropdownRect.height > window.innerHeight - 20) {
+    top = rect.top - dropdownRect.height - 6
+  }
+
+  return {
+    top: `${top}px`,
+    left: `${left}px`,
+    width: `${width}px`,
+  }
+}
+
+const updateDropdownPositions = async () => {
+  if (!teamDropdownOpen.value) return
+  await nextTick()
+
+  if (teamDropdownOpen.value) {
+    teamDropdownStyle.value = calculateDropdownPosition(
+      teamSelectRef.value,
+      teamDropdownRef.value
+    )
+  }
+}
+
+// ========================================
+// 下拉框操作
+// ========================================
+
+const toggleTeamDropdown = async () => {
+  if (teamDropdownOpen.value) {
+    teamDropdownOpen.value = false
+    return
+  }
+  closeAllDropdowns()
+  teamDropdownOpen.value = true
+  await updateDropdownPositions()
+}
+
+const selectTeam = (teamId: string) => {
+  form.teamId = teamId
+  teamDropdownOpen.value = false
+}
+
+// ========================================
+// 可见性选择
+// ========================================
+
+const selectVisibility = (visibility: number) => {
+  form.visibility = visibility
+  if (visibility === 1 && hasTeams.value && availableTeams.value.length > 0) {
+    // 如果选择团队可见，且还没有选择团队，默认选择第一个团队
+    if (!form.teamId) {
+      form.teamId = availableTeams.value[0].id || availableTeams.value[0].teamId || ''
+    }
+  } else if (visibility === 0) {
+    // 如果选择私有，清空团队ID
+    form.teamId = ''
+  }
+}
+
+// ========================================
+// 表单验证和提交
+// ========================================
+
 const validateName = (): boolean => {
   if (!form.name.trim()) {
     nameError.value = '请输入知识库名称'
@@ -206,7 +370,9 @@ const resetForm = () => {
   form.description = ''
   form.icon = 'icon_default'
   form.visibility = 0
+  form.teamId = ''
   nameError.value = ''
+  closeAllDropdowns()
 }
 
 const handleClose = () => {
@@ -215,22 +381,77 @@ const handleClose = () => {
 
 const handleSubmit = () => {
   if (!validateName()) return
-  emit('submit', { ...form })
+  
+  const payload: any = {
+    name: form.name,
+    description: form.description,
+    icon: form.icon,
+    visibility: form.visibility,
+  }
+  
+  // 如果是团队可见，添加teamId
+  if (form.visibility === 1 && form.teamId) {
+    payload.teamId = form.teamId
+  }
+  
+  emit('submit', payload)
 }
 
-// Watch modal visibility
+// ========================================
+// 全局监听器
+// ========================================
+
+const handleClickOutside = (e: MouseEvent) => {
+  if (!props.modelValue) return
+  const target = e.target as HTMLElement
+  if (!target.closest('.fixed-dropdown') && !target.closest('.custom-select')) {
+    closeAllDropdowns()
+  }
+}
+
+const addGlobalListeners = () => {
+  document.addEventListener('click', handleClickOutside)
+  window.addEventListener('resize', updateDropdownPositions)
+  window.addEventListener('scroll', updateDropdownPositions, true)
+}
+
+const removeGlobalListeners = () => {
+  document.removeEventListener('click', handleClickOutside)
+  window.removeEventListener('resize', updateDropdownPositions)
+  window.removeEventListener('scroll', updateDropdownPositions, true)
+}
+
+// ========================================
+// 监听器
+// ========================================
+
 watch(
   () => props.modelValue,
   (visible) => {
     if (visible) {
       resetForm()
+      addGlobalListeners()
+      updateDropdownPositions()
+    } else {
+      removeGlobalListeners()
+      closeAllDropdowns()
     }
   }
 )
+
+watch(teamDropdownOpen, () => {
+  updateDropdownPositions()
+})
+
+onUnmounted(() => {
+  removeGlobalListeners()
+})
 </script>
 
 <style scoped>
-/* 表单样式 */
+/* ========================================
+   表单样式
+   ======================================== */
 .modal-form {
   display: flex;
   flex-direction: column;
@@ -254,41 +475,9 @@ watch(
   color: #f53f3f;
 }
 
-/* 图标选择器 */
-.icon-picker {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.icon-option {
-  width: 40px;
-  height: 40px;
-  border: 1px solid #E0E0E0;
-  background: #F7F7F7;
-  border-radius: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.icon-option:hover {
-  background: #FFFFFF;
-  border-color: #999;
-}
-
-.icon-option.active {
-  background: #1a1a1a;
-  border-color: #1a1a1a;
-}
-
-.icon-emoji {
-  font-size: 18px;
-}
-
-/* 输入框 */
+/* ========================================
+   输入框样式
+   ======================================== */
 .input-wrapper,
 .textarea-wrapper {
   position: relative;
@@ -347,7 +536,9 @@ watch(
   margin: 0;
 }
 
-/* 文本域 */
+/* ========================================
+   文本域样式
+   ======================================== */
 .custom-textarea {
   width: 100%;
   padding: 10px 14px;
@@ -375,14 +566,16 @@ watch(
   background: #FFFFFF;
 }
 
-/* 可见性选项 */
+/* ========================================
+   可见性选项样式
+   ======================================== */
 .visibility-options {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .visibility-option {
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -419,6 +612,7 @@ watch(
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex: 1;
 }
 
 .visibility-label {
@@ -432,7 +626,151 @@ watch(
   color: #999;
 }
 
-/* 按钮 */
+/* ========================================
+   团队选择样式
+   ======================================== */
+.team-select-wrapper {
+  margin-top: 12px;
+}
+
+.custom-select-wrapper {
+  position: relative;
+  z-index: 1;
+}
+
+.custom-select {
+  width: 100%;
+  padding: 10px 14px;
+  background: #F7F7F7;
+  border: 1px solid #E0E0E0;
+  border-radius: 0;
+  font-size: 14px;
+  color: #1a1a1a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.custom-select:hover {
+  border-color: #CCCCCC;
+  background: #FFFFFF;
+}
+
+.custom-select.is-open {
+  border-color: #999;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
+  background: #FFFFFF;
+}
+
+.select-text {
+  flex: 1;
+  text-align: left;
+  color: #1a1a1a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.select-arrow {
+  color: #999;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.custom-select.is-open .select-arrow {
+  transform: rotate(180deg);
+}
+
+/* ========================================
+   下拉菜单样式
+   ======================================== */
+.custom-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #FFFFFF;
+  border: 1px solid #E8E8E8;
+  border-radius: 0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  padding: 4px;
+  z-index: 100;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.fixed-dropdown {
+  position: fixed;
+  z-index: 3000;
+  min-width: 200px;
+}
+
+.dropdown-option {
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 0;
+  text-align: left;
+  font-size: 14px;
+  color: #1a1a1a;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dropdown-option:hover {
+  background: #F5F5F5;
+}
+
+.dropdown-option.active {
+  background: #1a1a1a;
+  color: #FFFFFF;
+  font-weight: 500;
+}
+
+/* ========================================
+   图标选择器样式
+   ======================================== */
+.icon-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.icon-option {
+  width: 44px;
+  height: 44px;
+  border: 1px solid #E0E0E0;
+  background: #F7F7F7;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.icon-option:hover {
+  background: #FFFFFF;
+  border-color: #999;
+}
+
+.icon-option.active {
+  background: #1a1a1a;
+  border-color: #1a1a1a;
+}
+
+.icon-emoji {
+  font-size: 20px;
+}
+
+/* ========================================
+   按钮样式
+   ======================================== */
 .btn {
   border-radius: 0;
   padding: 10px 20px;
@@ -490,6 +828,20 @@ watch(
   to {
     transform: rotate(360deg);
   }
+}
+
+/* ========================================
+   下拉菜单过渡动画
+   ======================================== */
+.dropdown-fade-enter-active,
+.dropdown-fade-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.dropdown-fade-enter-from,
+.dropdown-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 </style>
 

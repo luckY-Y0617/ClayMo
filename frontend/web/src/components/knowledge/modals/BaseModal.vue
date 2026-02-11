@@ -58,13 +58,13 @@ const handleClose = () => {
 
 /* 对话框容器 */
 .modal-container {
-  width: 420px;
+  width: 520px;
   max-width: 90vw;
   max-height: 90vh;
   background: #FFFFFF;
   border-radius: 0;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
-  border: 1px solid #E8E8E8;
+  border: 1px solid #1a1a1a;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -73,8 +73,8 @@ const handleClose = () => {
 /* 头部 */
 .modal-header {
   padding: 24px 28px;
-  background: #FFFFFF;
-  border-bottom: 1px solid #E8E8E8;
+  background: #1a1a1a;
+  border-bottom: 1px solid #1a1a1a;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -83,7 +83,7 @@ const handleClose = () => {
 :deep(.modal-title) {
   font-size: 18px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #FFFFFF;
   margin: 0;
   letter-spacing: -0.01em;
 }
@@ -98,13 +98,13 @@ const handleClose = () => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #666;
+  color: #999;
   transition: all 0.2s ease;
 }
 
 :deep(.modal-close:hover) {
-  background: #F5F5F5;
-  color: #1a1a1a;
+  background: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
 }
 
 /* 内容区 */

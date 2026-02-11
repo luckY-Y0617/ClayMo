@@ -432,15 +432,23 @@ const handleCreateBaseSubmit = async (payload: {
   description: string
   icon: string
   visibility: number
+  teamId?: string
 }) => {
   try {
     createBaseSubmitting.value = true
-    const newBase = await kbApi.kb.create({
+    const createData: any = {
       name: payload.name,
       description: payload.description,
       icon: payload.icon,
       visibility: payload.visibility,
-    })
+    }
+    
+    // 如果是团队可见，添加teamId
+    if (payload.teamId) {
+      createData.teamId = payload.teamId
+    }
+    
+    const newBase = await kbApi.kb.create(createData)
     ElMessage.success('知识库创建成功')
     showCreateBaseModal.value = false
 

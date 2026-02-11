@@ -1,7 +1,3 @@
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using ClayMo.Module.Workspace.Application.Contracts.Focus;
 using ClayMo.Module.Workspace.Application.Contracts.Focus.Dtos;
 using ClayMo.Module.Workspace.Domain.Focus;
@@ -256,9 +252,6 @@ public class FocusAppService : ApplicationService, IFocusAppService
 
         return session;
     }
-
-    private static Guid? ParseTeamId(string? teamId)
-        => string.IsNullOrWhiteSpace(teamId) ? null : Guid.Parse(teamId);
 
     private static FocusSessionDto ToDto(FocusSession s, DateTime? runningSegmentStartAt)
         => new()

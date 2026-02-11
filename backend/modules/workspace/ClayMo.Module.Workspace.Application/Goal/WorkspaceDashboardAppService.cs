@@ -1,16 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using ClayMo.Framework.Core.Abstractions.Time;
+using ClayMo.Framework.Core.Extensions;
+using ClayMo.Framework.SqlSugar.Abstractions;
 using ClayMo.Module.Workspace.Application.Contracts.Goal.Dtos;
 using ClayMo.Module.Workspace.Domain.Goal;
-using ClayMo.Module.Workspace.Domain.Goal.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
-using Volo.Abp.Domain.Repositories;
-using Volo.Abp.Timing;
 using Volo.Abp.Users;
 
 namespace ClayMo.Module.Workspace.Application.Goal;
@@ -20,18 +16,18 @@ namespace ClayMo.Module.Workspace.Application.Goal;
 [Route("api/app/workspace/dashboard")]
 public class WorkspaceDashboardAppService : ApplicationService
 {
-    private readonly IGoalDefinitionRepository _goalDefinitionRepository;
-    private readonly IGoalDailyProgressRepository _goalDailyProgressRepository;
-    private readonly IWeeklyFocusItemRepository _weeklyFocusRepository;
-    private readonly ICheckInRepository _checkInRepository;
-    private readonly IClock _clock;
+    private readonly ISqlSugarRepository<GoalDefinition, Guid> _goalDefinitionRepository;
+    private readonly ISqlSugarRepository<GoalDailyProgress, Guid> _goalDailyProgressRepository;
+    private readonly ISqlSugarRepository<WeeklyFocusItem, Guid> _weeklyFocusRepository;
+    private readonly ISqlSugarRepository<CheckIn, Guid> _checkInRepository;
+    private readonly ISystemClock _clock;
 
     public WorkspaceDashboardAppService(
-        IGoalDefinitionRepository goalDefinitionRepository,
-        IGoalDailyProgressRepository goalDailyProgressRepository,
-        IWeeklyFocusItemRepository weeklyFocusRepository,
-        ICheckInRepository checkInRepository,
-        IClock clock)
+        ISqlSugarRepository<GoalDefinition, Guid> goalDefinitionRepository,
+        ISqlSugarRepository<GoalDailyProgress, Guid> goalDailyProgressRepository,
+        ISqlSugarRepository<WeeklyFocusItem, Guid> weeklyFocusRepository,
+        ISqlSugarRepository<CheckIn, Guid> checkInRepository,
+        ISystemClock clock)
     {
         _goalDefinitionRepository = goalDefinitionRepository;
         _goalDailyProgressRepository = goalDailyProgressRepository;
@@ -44,7 +40,7 @@ public class WorkspaceDashboardAppService : ApplicationService
     public async Task<DashboardTodayDto> GetTodayAsync(DateTime? date = null, DateTime? weekStart = null)
     {
         var today = (date ?? _clock.Now.Date).Date;
-        var weekStartDate = weekStart ?? GetWeekStart(today);
+        var weekStartDate = weekStart ?? today.GetWeekStart();
 
         var userId = CurrentUser.GetId();
 
@@ -220,12 +216,6 @@ public class WorkspaceDashboardAppService : ApplicationService
                 Completed = completedCount
             }
         };
-    }
-
-    private static DateTime GetWeekStart(DateTime date)
-    {
-        var diff = (7 + (date.DayOfWeek - DayOfWeek.Monday)) % 7;
-        return date.AddDays(-diff).Date;
     }
 
     private static int CalculateStreak(

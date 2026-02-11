@@ -9,7 +9,7 @@ import { ElMessage } from 'element-plus'
 
 import App from './App.vue'
 import router from './router'
-import { pinia, useAuthStore, usePermissionStore } from './stores'
+import { pinia, useAuthStore, usePermissionStore, useTeamStore } from './stores'
 
 // Element Plus 样式
 import 'element-plus/dist/index.css'
@@ -142,8 +142,10 @@ async function bootstrap(): Promise<void> {
     try {
       const authStore = useAuthStore()
       const permissionStore = usePermissionStore()
+      const teamStore = useTeamStore()
 
-      if (authStore.isAuthenticated && !permissionStore.initialized) {
+      // 如果已登录但权限或团队信息未加载，则重新获取用户信息
+      if (authStore.isAuthenticated && (!permissionStore.initialized || !teamStore.loaded)) {
         try {
           await authStore.fetchCurrentUser()
         } catch (error) {

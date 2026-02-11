@@ -1,4 +1,3 @@
-using System;
 using SqlSugar;
 using Volo.Abp.Domain.Entities;
 using Volo.Abp.Domain.Entities.Auditing;

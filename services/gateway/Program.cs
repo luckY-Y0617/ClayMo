@@ -14,7 +14,6 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        // 如果配置了通配符或者没有配置 CORS，允许所有来源
         if (corsOrigins.Length == 0 || corsOrigins.Contains("*"))
         {
             policy.AllowAnyOrigin()
@@ -37,13 +36,11 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | 
                                ForwardedHeaders.XForwardedProto |
                                ForwardedHeaders.XForwardedHost;
-    options.KnownNetworks.Clear();
+    options.KnownIPNetworks.Clear();
     options.KnownProxies.Clear();
 });
 
-// ========================================
 // 子域名配置
-// ========================================
 var adminHostPrefix = builder.Configuration.GetValue<string>("Domains:AdminPrefix") ?? "admin.";
 
 var app = builder.Build();
@@ -53,9 +50,7 @@ app.UseForwardedHeaders();
 
 app.UseCors("AllowFrontend");
 
-// ========================================
 // 静态文件服务 - 基于子域名路由
-// ========================================
 var webRoot = Path.Combine(app.Environment.ContentRootPath, "wwwroot");
 var adminRoot = Path.Combine(webRoot, "admin");
 var webFrontendRoot = Path.Combine(webRoot, "web");
@@ -136,9 +131,7 @@ app.MapGet("/health", () => Results.Ok("OK"));
 // 映射 YARP 反向代理端点（API 和文件服务，不区分域名）
 app.MapReverseProxy();
 
-// ========================================
 // SPA 回退 - 基于子域名返回对应 index.html
-// ========================================
 app.MapFallback(async context =>
 {
     var path = context.Request.Path.Value ?? "";

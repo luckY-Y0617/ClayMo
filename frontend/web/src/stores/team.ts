@@ -86,6 +86,6 @@ export const useTeamStore = defineStore('team', {
   persist: {
     key: 'team',
     storage: localStorage,
-    paths: ['teamContext'],
+    paths: ['teamContext', 'teams', 'loaded'],
   },
 })

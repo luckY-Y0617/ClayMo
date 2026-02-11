@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using ClayMo.Module.Workspace.Application.Contracts.Activity;
 using ClayMo.Module.Workspace.Application.Contracts.Activity.Dtos;
 using ClayMo.Module.Workspace.Domain.Activity;
@@ -68,7 +64,6 @@ public class ActivityAppService : ApplicationService, IActivityAppService
             .Take(input.MaxResultCount)
             .ToListAsync(cancellationToken);
 
-        // 你项目里一般用 ObjectMapper；这里 DTO 字段简单，我直接手动映射更直观
         return ObjectMapper.Map<List<ActivityLog>, List<ActivityDto>>(list);
     }
 }

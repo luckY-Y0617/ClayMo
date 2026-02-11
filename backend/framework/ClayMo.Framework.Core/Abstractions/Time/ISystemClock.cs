@@ -1,5 +1,3 @@
-using System;
-
 namespace ClayMo.Framework.Core.Abstractions.Time;
 
 public interface ISystemClock

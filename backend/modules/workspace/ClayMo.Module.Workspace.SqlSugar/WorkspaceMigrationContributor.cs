@@ -14,8 +14,8 @@ public sealed class WorkspaceMigrationContributor : CodeFirstMigrationContributo
 
     protected override IEnumerable<Type> GetEntityTypes()
     {
-        return new[]
-        {
+        return
+        [
             typeof(ActivityLog),
 
             typeof(FocusSession),
@@ -25,6 +25,6 @@ public sealed class WorkspaceMigrationContributor : CodeFirstMigrationContributo
             typeof(GoalDailyProgress),
             typeof(WeeklyFocusItem),
             typeof(CheckIn)
-        };
+        ];
     }
 }

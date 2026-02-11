@@ -1,5 +1,3 @@
-using System;
-
 namespace ClayMo.Framework.Core.Extensions;
 
 public static class DateTimeExtensions

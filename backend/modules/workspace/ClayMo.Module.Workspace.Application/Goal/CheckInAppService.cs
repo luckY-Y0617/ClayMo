@@ -1,13 +1,9 @@
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using ClayMo.Framework.Core.Abstractions.Time;
 using ClayMo.Framework.Core.Extensions;
+using ClayMo.Framework.SqlSugar.Abstractions;
 using ClayMo.Module.Workspace.Application.Contracts.Goal;
 using ClayMo.Module.Workspace.Application.Contracts.Goal.Dtos;
 using ClayMo.Module.Workspace.Domain.Goal;
-using ClayMo.Module.Workspace.Domain.Goal.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Volo.Abp;
@@ -21,11 +17,11 @@ namespace ClayMo.Module.Workspace.Application.Goal;
 [Route("api/app/workspace/week/checkin")]
 public class CheckInAppService : ApplicationService, ICheckInAppService
 {
-    private readonly ICheckInRepository _checkInRepository;
+    private readonly ISqlSugarRepository<CheckIn, Guid> _checkInRepository;
     private readonly ISystemClock _clock;
 
     public CheckInAppService(
-        ICheckInRepository checkInRepository,
+        ISqlSugarRepository<CheckIn, Guid> checkInRepository,
         ISystemClock clock)
     {
         _checkInRepository = checkInRepository;
@@ -43,7 +39,8 @@ public class CheckInAppService : ApplicationService, ICheckInAppService
         var weekEnd = weekStart.AddDays(7);
         var today = _clock.Now.Date;
 
-        var checkIns = await _checkInRepository.GetRangeAsync(userId, weekStart, weekEnd, ct);
+        var checkIns = await _checkInRepository.GetListAsync(
+            x => x.CreatorId == userId && x.CreationTime >= weekStart && x.CreationTime < weekEnd, false, ct);
 
         var days = Enumerable.Range(0, 7)
             .Select(i =>
@@ -80,7 +77,8 @@ public class CheckInAppService : ApplicationService, ICheckInAppService
         var source = input?.Source ?? "manual";
 
         // 检查今天是否已经打卡
-        var existing = await _checkInRepository.FindAsync(userId, targetDate, ct);
+        var existing = await _checkInRepository.FindAsync(
+            x => x.CreatorId == userId && x.CreationTime == targetDate, false,ct);
         if (existing != null)
         {
             throw new BusinessException("Workspace:AlreadyCheckedIn", "今天已经打卡过了");
@@ -97,7 +95,8 @@ public class CheckInAppService : ApplicationService, ICheckInAppService
 
         while (true)
         {
-            var hit = await _checkInRepository.FindAsync(userId, cursor, ct);
+            var hit = await _checkInRepository.FindAsync(
+            x => x.CreatorId == userId && x.CreationTime == cursor, false,ct);
             if (hit == null) break;
             streak++;
             cursor = cursor.AddDays(-1);
