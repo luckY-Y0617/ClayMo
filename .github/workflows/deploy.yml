@@ -1,0 +1,196 @@
+# ================================================
+# ClayMo 自动部署到生产环境
+# ================================================
+name: Deploy to Production
+
+on:
+  # 当 main 分支的 CI 成功后自动触发
+  workflow_run:
+    workflows: ["Backend CI/CD", "File Service CI"]
+    types: [completed]
+    branches: [main]
+  # 支持手动触发
+  workflow_dispatch:
+    inputs:
+      skip_backup:
+        description: '跳过数据库备份'
+        type: boolean
+        default: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/claymo
+
+jobs:
+  # ========================================
+  # 检查 CI 是否成功
+  # ========================================
+  check:
+    name: 检查部署条件
+    runs-on: ubuntu-latest
+    outputs:
+      should_deploy: ${{ steps.check.outputs.should_deploy }}
+    
+    steps:
+      - name: 检查状态
+        id: check
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+            echo "✅ 手动触发部署"
+          elif [[ "${{ github.event.workflow_run.conclusion }}" == "success" ]]; then
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+            echo "✅ CI 成功，准备部署"
+          else
+            echo "should_deploy=false" >> $GITHUB_OUTPUT
+            echo "❌ CI 失败，跳过部署"
+          fi
+
+  # ========================================
+  # 部署到服务器
+  # ========================================
+  deploy:
+    name: 部署服务
+    runs-on: ubuntu-latest
+    needs: check
+    if: needs.check.outputs.should_deploy == 'true'
+    
+    steps:
+      # 备份数据库
+      - name: 备份数据库
+        if: ${{ !inputs.skip_backup }}
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          port: ${{ secrets.PRODUCTION_SSH_PORT || 22 }}
+          script: |
+            echo "📦 备份数据库..."
+            cd ${{ secrets.PRODUCTION_PATH }}
+            mkdir -p backups
+            BACKUP_FILE="backups/db-backup-$(date +%Y%m%d-%H%M%S).sql"
+            docker exec claymo-mysql mysqldump -u root -p${{ secrets.MYSQL_ROOT_PASSWORD }} \
+              --all-databases --single-transaction --quick --lock-tables=false > $BACKUP_FILE
+            gzip $BACKUP_FILE
+            echo "✅ 备份完成: ${BACKUP_FILE}.gz"
+            
+            # 只保留最近 7 天的备份
+            find backups/ -name "db-backup-*.sql.gz" -mtime +7 -delete
+
+      # 拉取最新镜像并更新服务
+      - name: 部署更新
+        uses: appleboy/ssh-action@v1.0.3
+        timeout-minutes: 15
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          port: ${{ secrets.PRODUCTION_SSH_PORT || 22 }}
+          script: |
+            echo "🚀 开始部署..."
+            cd ${{ secrets.PRODUCTION_PATH }}
+            
+            # 拉取最新代码
+            echo "📥 拉取最新代码..."
+            git pull origin main
+            
+            # 登录 GHCR
+            echo "🔐 登录镜像仓库..."
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            # 拉取最新镜像
+            echo "📥 拉取最新镜像..."
+            docker compose --profile full pull
+            
+            # 滚动更新服务（避免停机）
+            echo "🔄 更新 Gateway..."
+            docker compose up -d --no-deps gateway
+            sleep 10
+            
+            echo "🔄 更新 API 服务..."
+            docker compose up -d --no-deps api
+            sleep 15
+            
+            echo "🔄 更新文件服务..."
+            docker compose up -d --no-deps file-service
+            sleep 5
+            
+            # 清理旧镜像
+            echo "🧹 清理旧镜像..."
+            docker image prune -f --filter "until=168h"
+            
+            echo "✅ 部署完成"
+
+      # 健康检查
+      - name: 健康检查
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          port: ${{ secrets.PRODUCTION_SSH_PORT || 22 }}
+          script: |
+            echo "🔍 检查服务状态..."
+            cd ${{ secrets.PRODUCTION_PATH }}
+            
+            # 等待服务启动
+            sleep 20
+            
+            # 检查容器状态
+            docker compose ps
+            
+            # 检查是否有异常退出的容器
+            UNHEALTHY=$(docker compose ps --filter "status=exited" --format json | jq -s 'length')
+            
+            if [ "$UNHEALTHY" -gt 0 ]; then
+              echo "❌ 发现异常容器"
+              docker compose logs --tail=50
+              exit 1
+            fi
+            
+            echo "✅ 所有容器运行正常"
+
+      # 测试 API 端点
+      - name: 测试 API
+        run: |
+          echo "🔍 测试 API 端点..."
+          
+          # 等待服务稳定
+          sleep 10
+          
+          # 测试健康检查端点
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            --max-time 10 \
+            http://${{ secrets.PRODUCTION_HOST }}:5080/health)
+          
+          if [ "$STATUS" = "200" ]; then
+            echo "✅ 健康检查通过"
+          else
+            echo "❌ 健康检查失败 (HTTP $STATUS)"
+            exit 1
+          fi
+
+  # ========================================
+  # 部署通知
+  # ========================================
+  notify:
+    name: 发送通知
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: always()
+    
+    steps:
+      - name: 部署结果
+        run: |
+          if [[ "${{ needs.deploy.result }}" == "success" ]]; then
+            echo "✅ 部署成功！"
+            echo "分支: ${{ github.ref_name }}"
+            echo "提交: ${{ github.sha }}"
+            echo "时间: $(date)"
+          else
+            echo "❌ 部署失败！"
+            echo "请检查日志"
+            exit 1
+          fi
+
