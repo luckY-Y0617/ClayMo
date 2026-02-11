@@ -1,8 +1,5 @@
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.StaticFiles;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -72,9 +69,7 @@ contentTypeProvider.Mappings[".json"] = "application/json";
 contentTypeProvider.Mappings[".woff"] = "font/woff";
 contentTypeProvider.Mappings[".woff2"] = "font/woff2";
 
-/// <summary>
-/// 缓存策略：静态资源缓存 1 年，HTML 不缓存
-/// </summary>
+// 缓存策略：静态资源缓存 1 年，HTML 不缓存
 void SetCacheHeaders(StaticFileResponseContext ctx)
 {
     if (ctx.File.Name.Contains('.') && !ctx.File.Name.EndsWith(".html"))
@@ -87,16 +82,12 @@ void SetCacheHeaders(StaticFileResponseContext ctx)
     }
 }
 
-/// <summary>
-/// 判断当前请求是否来自 Admin 子域名
-/// 例如: admin.claymo.local, admin.example.com
-/// </summary>
+// 判断当前请求是否来自 Admin 子域名
+// 例如: admin.claymo.local, admin.example.com
 bool IsAdminHost(HttpContext context) =>
     context.Request.Host.Host.StartsWith(adminHostPrefix, StringComparison.OrdinalIgnoreCase);
 
-// ========================================
 // Admin 子域名 (admin.*) - 静态文件
-// ========================================
 if (Directory.Exists(adminRoot))
 {
     var adminFileProvider = new PhysicalFileProvider(adminRoot);
@@ -113,9 +104,7 @@ if (Directory.Exists(adminRoot))
     });
 }
 
-// ========================================
 // Web 主域名 (*) - 静态文件
-// ========================================
 if (Directory.Exists(webFrontendRoot))
 {
     var webFileProvider = new PhysicalFileProvider(webFrontendRoot);
@@ -132,9 +121,7 @@ if (Directory.Exists(webFrontendRoot))
     });
 }
 
-// ========================================
 // 客户端类型标记 - 供后端 Smart Scheme 判断认证方式
-// ========================================
 app.Use(async (context, next) =>
 {
     // 防止客户端伪造：先移除再设置
