@@ -61,8 +61,6 @@ const emit = defineEmits<{
   unlock: []
 }>()
 
-// ============ 状态 ============
-
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
 const draft = ref('')
 const previewText = ref('')
