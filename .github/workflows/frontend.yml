@@ -80,9 +80,7 @@ jobs:
           path: frontend/admin/dist
           retention-days: 7
 
-  # ========================================
   # Docker 构建测试 (PR)
-  # ========================================
   docker-build:
     name: Gateway Docker Build Test
     runs-on: ubuntu-latest
