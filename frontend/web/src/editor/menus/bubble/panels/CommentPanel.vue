@@ -68,7 +68,6 @@ const lastFrom = ref<number | null>(null)
 const lastTo = ref<number | null>(null)
 
 // 选区预览
-
 const updatePreviewFromSelection = () => {
   if (!props.editor) return
 
@@ -86,8 +85,7 @@ const updatePreviewFromSelection = () => {
   previewText.value = text ? (text.length > 80 ? `${text.slice(0, 80)}…` : text) : ''
 }
 
-// ============ 事件处理 ============
-
+// 事件处理
 const handleMouseDown = (e: MouseEvent) => {
   e.stopPropagation()
   emit('lock')
