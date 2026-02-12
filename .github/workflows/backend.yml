@@ -84,9 +84,7 @@ jobs:
         run: dotnet format ClayMo.Abp.Net9.sln --verify-no-changes --verbosity diagnostic
         continue-on-error: true
 
-  # ========================================
   # Docker 构建（PR 时不推送）
-  # ========================================
   docker-build:
     name: Docker Build (no push)
     runs-on: ubuntu-latest
