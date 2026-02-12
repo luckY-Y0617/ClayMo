@@ -67,7 +67,7 @@ const previewText = ref('')
 const lastFrom = ref<number | null>(null)
 const lastTo = ref<number | null>(null)
 
-// ============ 选区预览 ============
+// 选区预览
 
 const updatePreviewFromSelection = () => {
   if (!props.editor) return

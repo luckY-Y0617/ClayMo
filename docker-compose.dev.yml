@@ -1,0 +1,41 @@
+# ================================================
+# Docker Compose 开发环境覆盖配置
+# ================================================
+# 使用方法:
+#   开发环境: docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile full up -d
+#   生产环境: docker compose --profile full up -d
+# ================================================
+
+services:
+  # ============================
+  # 开发环境使用本地构建
+  # ============================
+  
+  gateway:
+    build:
+      context: .
+      dockerfile: services/gateway/Dockerfile
+    image: null  # 覆盖 image 配置，强制使用 build
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: null
+
+  file-service:
+    build:
+      context: .
+      dockerfile: services/file-service/Dockerfile
+    image: null
+
+  # ============================
+  # 开发环境特殊配置
+  # ============================
+  
+  init:
+    # 开发环境保持本地构建
+    build:
+      context: ./backend
+      dockerfile: tools/ClayMo.Tools.Platform/Dockerfile
+
