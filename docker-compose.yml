@@ -138,7 +138,7 @@ services:
   gateway:
     # 生产环境：使用 GHCR 镜像（通过 CI/CD 推送）
     # 开发环境：使用本地构建（注释掉 image，取消注释 build）
-    image: ${GATEWAY_IMAGE:-ghcr.io/luckY-Y0617/claymo-gateway:latest}
+    image: ${GATEWAY_IMAGE:-ghcr.io/lucky-y0617/claymo-gateway:latest}
     # build:
     #   context: .
     #   dockerfile: services/gateway/Dockerfile
@@ -185,7 +185,7 @@ services:
   api:
     # 生产环境：使用 GHCR 镜像（通过 CI/CD 推送）
     # 开发环境：使用本地构建（注释掉 image，取消注释 build）
-    image: ${API_IMAGE:-ghcr.io/luckY-Y0617/claymo-backend:latest}
+    image: ${API_IMAGE:-ghcr.io/lucky-y0617/claymo-backend:latest}
     # build:
     #   context: ./backend
     #   dockerfile: Dockerfile
@@ -224,7 +224,7 @@ services:
   file-service:
     # 生产环境：使用 GHCR 镜像（通过 CI/CD 推送）
     # 开发环境：使用本地构建（注释掉 image，取消注释 build）
-    image: ${FILE_SERVICE_IMAGE:-ghcr.io/luckY-Y0617/claymo-file-service:latest}
+    image: ${FILE_SERVICE_IMAGE:-ghcr.io/lucky-y0617/claymo-file-service:latest}
     # build:
     #   context: .
     #   dockerfile: services/file-service/Dockerfile
