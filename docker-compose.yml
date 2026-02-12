@@ -114,7 +114,6 @@ services:
       - ${CERT_PATH:-./infra/cert}:/app/cert:ro
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
-      ASPNETCORE_URLS: ${ASPNETCORE_URLS:-http://+:5080}
       # 子域名配置
       Domains__AdminPrefix: ${ADMIN_PREFIX:-admin.}
       # CORS 配置（生产环境建议配置具体域名，开发环境使用 *）
@@ -124,21 +123,24 @@ services:
       # 反向代理配置（指向容器服务名）
       ReverseProxy__Clusters__api-cluster__Destinations__api-service__Address: http://api:19001
       ReverseProxy__Clusters__file-cluster__Destinations__file-service__Address: http://file-service:8889
-      # HTTPS 证书配置（可选，配置后自动启用 HTTPS）
+      # Kestrel 端点配置
+      # HTTP 端点（必需，用于健康检查和内部通信）
+      Kestrel__Endpoints__Http__Url: http://0.0.0.0:5080
+      # HTTPS 端点（可选，取消注释并在 .env 中配置证书路径后启用）
       Kestrel__Endpoints__Https__Url: ${HTTPS_URL:-}
       Kestrel__Endpoints__Https__Certificate__Path: ${CERT_FILE:-}
       Kestrel__Endpoints__Https__Certificate__KeyPath: ${CERT_KEY_FILE:-}
     depends_on:
       api:
-        condition: service_healthy
+        condition: service_started  # 改为 started，不等待 API healthy
       file-service:
         condition: service_started
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5080/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 60s
+      retries: 5  # 增加重试次数
+      start_period: 90s  # 增加启动等待时间
     networks:
       - claymo-network
     profiles:
@@ -192,13 +194,10 @@ services:
     restart: unless-stopped
     ports:
       - "${FILE_SERVICE_PORT:-8889}:8889"
-    environment:
-      # 文件服务配置
-      # 根据 file-service 的具体实现添加必要的环境变量
-      # 例如：数据库、Redis、Kafka 等配置
-      KAFKA_SERVERS: kafka:9092
     volumes:
-      - ./services/file-service/etc/file-api.yaml:/app/etc/file-api.yaml:ro
+      # 镜像内已包含默认配置（从 file-api.yaml.example 复制）
+      # 如需自定义配置，取消注释下行并创建配置文件：
+      # - ./services/file-service/etc/file-api.yaml:/app/etc/file-api.yaml:ro
       - file_data:/app/data
     depends_on:
       mysql:

@@ -1,3 +1,13 @@
+# ================================================
+# File Service 配置文件示例
+# ================================================
+# 使用说明：
+# 1. 生产环境：此文件会在 Docker 构建时复制到镜像中作为默认配置
+# 2. 开发环境：复制此文件为 file-api.yaml 并修改为本地配置
+#    cp file-api.yaml.example file-api.yaml
+# 3. 自定义配置：在服务器上创建 file-api.yaml 并挂载到容器
+# ================================================
+
 Name: file-service
 Host: 0.0.0.0
 Port: 8889
@@ -7,15 +17,16 @@ Auth:
   AccessExpire: 7200
 
 DB:
-  DataSource: "root:your_password@tcp(localhost:3306)/claymo_host?charset=utf8mb4&parseTime=true&loc=Local"
+  # Docker Compose 环境使用容器服务名，本地开发使用 localhost
+  DataSource: "root:your_password@tcp(mysql:3306)/claymo_host?charset=utf8mb4&parseTime=true&loc=Local"
 
 Redis:
-  Host: "127.0.0.1:6379"
+  Host: "redis:6379"
   Type: "node"
   Pass: ""
 
 Cache:
-  - Host: "127.0.0.1:6379"
+  - Host: "redis:6379"
     Type: "node"
     Pass: ""
 
@@ -41,16 +52,14 @@ Internal:
 
 Kafka:
   Brokers:
-    - "127.0.0.1:19092"
+    - "kafka:9092"
   TopicTranscode: "file-transcode-tasks"
   TopicOutbox: "file-outbox-events"
 
-# CORS配置（生产环境）
+# CORS 配置（生产环境可通过卷挂载覆盖此配置）
 CORS:
   AllowedOrigins:
-    - http://localhost:3000
-    - https://yourdomain.com
-    - https://admin.yourdomain.com
+    - "*"
   AllowedMethods:
     - GET
     - POST

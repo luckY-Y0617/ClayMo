@@ -28,6 +28,10 @@ services:
       context: .
       dockerfile: services/file-service/Dockerfile
     image: null
+    volumes:
+      # 开发环境使用本地配置文件（可直接修改调试）
+      - ./services/file-service/etc/file-api.yaml:/app/etc/file-api.yaml:ro
+      - file_data:/app/data
 
   # ============================
   # 开发环境特殊配置
