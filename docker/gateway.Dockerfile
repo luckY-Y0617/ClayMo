@@ -127,7 +127,6 @@ RUN dotnet publish "ClayMo.Gateway.csproj" \
     -c ${BUILD_CONFIGURATION} \
     -o /app/publish \
     --no-restore \
-    --no-build \
     /p:UseAppHost=false
 
 # ============================

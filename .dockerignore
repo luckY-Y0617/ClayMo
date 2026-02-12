@@ -33,7 +33,7 @@
 # ============================
 **/node_modules/
 **/.pnpm-store/
-**/pnpm-lock.yaml
+# pnpm-lock.yaml 需要用于构建
 **/.npm/
 **/.yarn/
 **/yarn.lock
@@ -209,6 +209,7 @@ TODO.md
 eslint.config.js
 .prettierignore
 .eslintignore
-tsconfig*.json
-!tsconfig.json
+# 保留构建需要的 tsconfig 文件
+# tsconfig*.json 在前端构建中需要
+# !tsconfig.json
 
