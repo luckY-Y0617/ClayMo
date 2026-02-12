@@ -32,6 +32,13 @@ export interface ImageHoverUIState {
 }
 
 declare module '@tiptap/core' {
+  /** ======== 存储扩展 ======== */
+  interface Storage {
+    image: {
+      hoverUI: ImageHoverUIState
+    }
+  }
+
   interface Commands<ReturnType> {
     imageBlock: {
       /**
@@ -85,8 +92,13 @@ export const ImageBlock = Image.extend<ImageBlockOptions>({
     }
   },
 
+  /** ======== 命令扩展 ======== */
+  /**
+   * 扩展图片命令并保留父级命令（包含 setImage）
+   */
   addCommands() {
     return {
+      ...this.parent?.(),
       setImageAlign:
         (align) =>
         ({ commands }) => {
