@@ -19,9 +19,7 @@ env:
   IMAGE_PREFIX: ${{ github.repository_owner }}/claymo
 
 jobs:
-  # ========================================
   # 检查 CI 是否成功
-  # ========================================
   check:
     name: 检查部署条件
     runs-on: ubuntu-latest

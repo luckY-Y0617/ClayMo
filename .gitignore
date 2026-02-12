@@ -74,9 +74,8 @@ yarn-error.log*
 **/appsettings.*.local.json
 
 # Go 服务配置文件
-services/file-service/etc/file-api.yaml
-# 允许 example 文件
-!services/file-service/etc/file-api.yaml.example
+# file-api.yaml 使用环境变量占位符，可以提交到版本控制
+# 真实的敏感信息在 .env 文件中（已被忽略）
 
 # ============================
 # Certificates

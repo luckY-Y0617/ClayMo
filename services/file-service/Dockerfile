@@ -38,9 +38,9 @@ RUN addgroup -g 1000 appgroup && \
 
 COPY --from=builder /app/file-service .
 
-# 创建配置目录并复制配置模板（构建时使用 example 文件）
+# 创建配置目录并复制配置文件（环境变量会在运行时注入）
 RUN mkdir -p /app/etc
-COPY --from=builder /build/etc/file-api.yaml.example /app/etc/file-api.yaml
+COPY --from=builder /build/etc/file-api.yaml /app/etc/file-api.yaml
 
 # 修改权限
 RUN chown -R appuser:appgroup /app

@@ -1,9 +1,3 @@
-/**
- * ClayMo Workspace 级 ESLint 配置
- *
- * 这是 monorepo 的共享 ESLint 配置基础。
- * 各子项目（frontend/web、frontend/admin）继承此配置并可扩展项目特有规则。
- */
 import js from '@eslint/js'
 import pluginVue from 'eslint-plugin-vue'
 import vueTsEslintConfig from '@vue/eslint-config-typescript'

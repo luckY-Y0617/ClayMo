@@ -1,11 +1,3 @@
-/**
- * CommentMark Extension
- *
- * 用于标记被评论的文字，支持：
- * - 浅色背景高亮
- * - hover 时显示评论标记
- * - 点击跳转到评论线程
- */
 import { Mark, mergeAttributes } from '@tiptap/core'
 
 export interface CommentMarkOptions {
