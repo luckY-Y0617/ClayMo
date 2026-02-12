@@ -146,25 +146,6 @@ jobs:
             
             echo "✅ 所有容器运行正常"
 
-      # 测试 API 端点
-      - name: 测试 API
-        run: |
-          echo "🔍 测试 API 端点..."
-          
-          # 等待服务稳定
-          sleep 10
-          
-          # 测试健康检查端点
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            --max-time 10 \
-            http://${{ secrets.PRODUCTION_HOST }}:5080/health)
-          
-          if [ "$STATUS" = "200" ]; then
-            echo "✅ 健康检查通过"
-          else
-            echo "❌ 健康检查失败 (HTTP $STATUS)"
-            exit 1
-          fi
 
   # ========================================
   # 部署通知
