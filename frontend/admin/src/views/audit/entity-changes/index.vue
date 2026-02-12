@@ -3,12 +3,10 @@ import { ref, reactive, onMounted } from 'vue'
 import type { EntityChangeDto } from '@/types'
 import * as auditApi from '@/api/audit'
 
-// State
 const loading = ref(false)
 const tableData = ref<EntityChangeDto[]>([])
 const total = ref(0)
 
-// Search params
 const searchParams = reactive({
   startTime: '',
   endTime: '',
@@ -18,18 +16,15 @@ const searchParams = reactive({
   maxResultCount: 20,
 })
 
-// Detail drawer
 const drawerVisible = ref(false)
 const selectedChange = ref<EntityChangeDto | null>(null)
 
-// Change types
 const changeTypes = [
   { value: 'Created', label: '创建' },
   { value: 'Updated', label: '更新' },
   { value: 'Deleted', label: '删除' },
 ]
 
-// Fetch data
 const fetchData = async () => {
   loading.value = true
   try {
@@ -82,7 +77,6 @@ const handleSizeChange = (size: number) => {
   fetchData()
 }
 
-// View detail
 const handleViewDetail = async (row: EntityChangeDto) => {
   try {
     selectedChange.value = await auditApi.getEntityChange(row.id)
@@ -92,7 +86,6 @@ const handleViewDetail = async (row: EntityChangeDto) => {
   }
 }
 
-// Get change type tag
 const getChangeTypeTag = (type: string) => {
   switch (type) {
     case 'Created':
@@ -106,7 +99,6 @@ const getChangeTypeTag = (type: string) => {
   }
 }
 
-// Get entity name
 const getEntityName = (fullName: string) => {
   const parts = fullName.split('.')
   return parts[parts.length - 1]

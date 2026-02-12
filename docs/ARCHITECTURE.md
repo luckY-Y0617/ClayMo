@@ -102,12 +102,6 @@ else
     return SessionAuthenticationScheme;  // Session Cookie
 ```
 
-#### 职责划分
-
-- **`UserRepository.FindAndVerifyAsync`**：用户名密码验证（领域层）
-- **`LoginAttemptedEvent` + Handler**：登录日志记录（领域事件，异步处理）
-- **`UserAppService.GetMeAsync`**：获取当前用户信息（应用层，统一端点）
-
 ### 事件驱动
 
 使用 ABP `ILocalEventBus` 实现模块间解耦：
@@ -222,7 +216,7 @@ File Service (Go)
 - 每个 Tenant 可配置独立数据库或共享数据库
 
 **表结构：**
-- 所有业务表包含 `TenantId` 字段（Guid? 可为 null）
+- 所有业务表包含 `TenantId` 字段
 - ABP 自动过滤查询（Multi-Tenancy Filter）
 - Host 数据：`TenantId = null`
 - Tenant 数据：`TenantId = {具体租户ID}`
