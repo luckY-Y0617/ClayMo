@@ -83,7 +83,8 @@ services:
     image: ${INIT_IMAGE:-ghcr.io/lucky-y0617/claymo-init:latest}
     container_name: claymo-init
     environment:
-      SqlSugar__ConnectionStrings__Default: "Server=mysql;Port=3306;Database=${MYSQL_DATABASE:-claymo_host};Uid=root;Password=${MYSQL_ROOT_PASSWORD:-123456};Charset=utf8mb4"
+      SqlSugar__ConnectionStrings__Default: "Server=mysql;Port=3306;Database=${MYSQL_DATABASE};Uid=root;Password=${MYSQL_ROOT_PASSWORD};Charset=utf8mb4"
+      SqlSugar__DbTypes__Default: "${MYSQL_DATABASE}"
       Redis__Configuration: "redis:6379${REDIS_PASSWORD:+,password=${REDIS_PASSWORD}}"
     entrypoint: ["/bin/sh", "-c"]
     command: ["dotnet ClayMo.Tools.Platform.dll migrate host && dotnet ClayMo.Tools.Platform.dll seed host"]
@@ -164,11 +165,6 @@ services:
       Authentication__Jwt__SigningKey: ${JWT_SECRET_KEY:-DevSecretKeyAtLeast32CharactersLong!}
       Authentication__Jwt__Issuer: ${JWT_ISSUER:-ClayMo}
       Authentication__Jwt__Audience: ${JWT_AUDIENCE:-ClayMo}
-      # 文件服务配置（云存储）
-      FileService__HuaWeiYun__EndPoint: ${FILE_SERVICE_ENDPOINT:-}
-      FileService__HuaWeiYun__AccessKeyId: ${FILE_SERVICE_ACCESS_KEY:-}
-      FileService__HuaWeiYun__SecretAccessKey: ${FILE_SERVICE_SECRET_KEY:-}
-      FileService__HuaWeiYun__BucketName: ${FILE_SERVICE_BUCKET:-}
     depends_on:
       init:
         condition: service_completed_successfully
@@ -233,16 +229,10 @@ services:
     profiles:
       - full
 
-# ============================
-# 网络
-# ============================
 networks:
   claymo-network:
     driver: bridge
 
-# ============================
-# 数据卷
-# ============================
 volumes:
   mysql_data:
     driver: local

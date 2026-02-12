@@ -12,7 +12,6 @@ export const useUserStore = defineStore(
     const tenantId = ref<string>('')
     const isLoggedIn = computed(() => !!currentUser.value)
 
-    // Check if user has specific permission
     const hasPermission = (permission: string): boolean => {
       if (!currentUser.value) return false
       // Safe check for permissions array
