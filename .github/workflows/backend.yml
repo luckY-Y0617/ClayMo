@@ -20,9 +20,6 @@ env:
   IMAGE_NAME: ${{ github.repository_owner }}/claymo-backend
 
 jobs:
-  # ========================================
-  # 构建和测试
-  # ========================================
   build:
     name: Build & Test
     runs-on: ubuntu-latest
