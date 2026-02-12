@@ -1,37 +1,6 @@
-# ================================================
-# ClayMo Docker Compose
-# ================================================
-# 使用方法:
-#   一键启动全部:   docker compose --profile full up -d
-#   仅基础设施:     docker compose up -d mysql redis
-#   查看日志:       docker compose logs -f [service]
-#   停止服务:       docker compose down
-#   清理数据:       docker compose down -v
-#
-# 启动流程 (--profile full):
-#   1. mysql/redis 启动并健康检查
-#   2. init 服务执行 migrate + seed 后退出
-#   3. api/file-service 启动
-#   4. gateway 启动（统一入口，包含前端静态文件）
-#
-# 子域名路由架构 (Gateway 按 Host 头分发):
-#   admin.claymo.local:5080 → 后台管理前端
-#   claymo.local:5080       → 前台前端
-#   /api/*                  → API 服务 (反向代理)
-#   /fs/*                   → 文件服务 (反向代理)
-#
-# 配置方式：
-#   生产环境：在项目根目录创建 .env 文件覆盖默认值
-#   开发环境：使用默认值 + appsettings.Development.json
-# ================================================
-
 name: claymo
 
 services:
-  # ============================
-  # 基础设施
-  # ============================
-  
   mysql:
     image: mysql:8.0
     container_name: claymo-mysql
@@ -39,8 +8,8 @@ services:
     ports:
       - "${MYSQL_PORT:-3307}:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-claymo_host}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_CHARACTER_SET_SERVER: utf8mb4
       MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
       TZ: Asia/Shanghai
@@ -52,7 +21,7 @@ services:
       - --collation-server=utf8mb4_unicode_ci
       - --default-authentication-plugin=mysql_native_password
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-123456}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -77,8 +46,6 @@ services:
     networks:
       - claymo-network
 
-  # Kafka (消息队列 - 文件服务异步处理)
-  # 使用 Confluent KRaft 模式（无需 Zookeeper）
   kafka:
     image: confluentinc/cp-kafka:latest
     container_name: claymo-kafka
@@ -111,15 +78,9 @@ services:
     profiles:
       - full
 
-  # ============================
   # 初始化服务 (migrate + seed)
-  # ============================
-
   init:
     image: ${INIT_IMAGE:-ghcr.io/lucky-y0617/claymo-init:latest}
-    # build:
-    #   context: ./backend
-    #   dockerfile: tools/ClayMo.Tools.Platform/Dockerfile
     container_name: claymo-init
     environment:
       SqlSugar__ConnectionStrings__Default: "Server=mysql;Port=3306;Database=${MYSQL_DATABASE:-claymo_host};Uid=root;Password=${MYSQL_ROOT_PASSWORD:-123456};Charset=utf8mb4"
@@ -135,10 +96,6 @@ services:
       - claymo-network
     profiles:
       - full
-
-  # ============================
-  # 应用服务
-  # ============================
 
   gateway:
     # 生产环境：使用 GHCR 镜像（通过 CI/CD 推送）
@@ -177,10 +134,10 @@ services:
       file-service:
         condition: service_started
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5080/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5080/health"]
       interval: 30s
       timeout: 10s
-      retries: 5
+      retries: 3
       start_period: 60s
     networks:
       - claymo-network
@@ -188,8 +145,6 @@ services:
       - full
 
   api:
-    # 生产环境：使用 GHCR 镜像（通过 CI/CD 推送）
-    # 开发环境：使用本地构建（注释掉 image，取消注释 build）
     image: ${API_IMAGE:-ghcr.io/lucky-y0617/claymo-backend:latest}
     # build:
     #   context: ./backend
@@ -229,8 +184,6 @@ services:
       - full
 
   file-service:
-    # 生产环境：使用 GHCR 镜像（通过 CI/CD 推送）
-    # 开发环境：使用本地构建（注释掉 image，取消注释 build）
     image: ${FILE_SERVICE_IMAGE:-ghcr.io/lucky-y0617/claymo-file-service:latest}
     # build:
     #   context: .
