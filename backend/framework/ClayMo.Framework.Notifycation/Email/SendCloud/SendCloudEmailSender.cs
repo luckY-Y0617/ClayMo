@@ -1,11 +1,6 @@
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ClayMo.Framework.Core.Utilities.Json;
-using ClayMo.Framework.Notifycation.Options;
-using ClayMo.Framework.Notifycation.SendCloud;
 
 namespace ClayMo.Framework.Notifycation.Email.SendCloud;
 
@@ -17,7 +12,6 @@ public class SendCloudEmailSender(
     private readonly ILogger<SendCloudEmailSender> _logger = logger;
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly SendCloudOptions _options = options.Value;
-    
     
     public async Task SendAsync(string to, string subject, string body)
     {

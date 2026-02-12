@@ -1,7 +1,6 @@
-using System.Threading.Tasks;
 using Volo.Abp.DependencyInjection;
 
-namespace ClayMo.Framework.Notifycation;
+namespace ClayMo.Framework.Notifycation.Email;
 
 public interface IEmailSender: ITransientDependency
 {

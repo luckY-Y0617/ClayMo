@@ -1,29 +1,26 @@
-namespace ClayMo.Framework.Core.Sms.Options;
+namespace ClayMo.Framework.Notifycation.Sms.Aliyun;
 
-/// <summary>
-/// 阿里云相关配置选项类
-/// </summary>
 public class AliyunOptions
 {
     /// <summary>
     /// 阿里云访问密钥 ID
     /// </summary>
-    public string AccessKeyId { get; set; }
+    public string? AccessKeyId { get; set; }
 
     /// <summary>
     /// 阿里云访问密钥 Secret
     /// </summary>
-    public string AccessKeySecret { get; set; }
+    public string? AccessKeySecret { get; set; }
     
     /// <summary>
     /// 访问的域名
     /// </summary>
-    public string Endpoint { get; set; }
+    public string? Endpoint { get; set; }
 
     /// <summary>
     /// 阿里云短信服务相关配置
     /// </summary>
-    public AliyunSms Sms { get; set; }
+    public AliyunSms? Sms { get; set; }
 }
 
 /// <summary>
@@ -34,10 +31,10 @@ public class AliyunSms
     /// <summary>
     /// 短信签名
     /// </summary>
-    public string SignName { get; set; }
+    public string? SignName { get; set; }
 
     /// <summary>
     /// 短信模板代码
     /// </summary>
-    public string TemplateCode { get; set; }
+    public string? TemplateCode { get; set; }
 }

@@ -15,10 +15,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Email\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <PackageReference Include="AlibabaCloud.SDK.Dysmsapi20170525" Version="4.0.1" />
       <PackageReference Include="Volo.Abp.Core" Version="10.0.0" />
     </ItemGroup>

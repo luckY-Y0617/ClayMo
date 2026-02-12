@@ -1,4 +1,4 @@
-namespace ClayMo.Framework.Notifycation.SendCloud;
+namespace ClayMo.Framework.Notifycation.Email.SendCloud;
 
 public class SendCloudResponseModel
 {

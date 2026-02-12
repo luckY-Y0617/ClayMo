@@ -1,13 +1,10 @@
-using System;
 using System.Text.Json;
-using System.Threading.Tasks;
 using AlibabaCloud.OpenApiClient.Models;
 using AlibabaCloud.SDK.Dysmsapi20170525;
 using AlibabaCloud.SDK.Dysmsapi20170525.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp;
-using ClayMo.Framework.Core.Sms.Options;
 
 namespace ClayMo.Framework.Notifycation.Sms.Aliyun;
 
