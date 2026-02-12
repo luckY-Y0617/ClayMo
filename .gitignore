@@ -63,12 +63,15 @@ yarn-error.log*
 *.env
 !.env.example
 
-# appsettings.json 配置文件（包含敏感信息）
-**/appsettings.json
-**/appsettings.Development.json
-**/appsettings.Production.json
-# 允许 example 文件
+# appsettings.json 配置文件
+# 允许标准环境配置文件（使用环境变量占位符）
+!**/appsettings.json
+!**/appsettings.Development.json
+!**/appsettings.Production.json
 !**/appsettings.example.json
+# 只忽略本地覆盖文件（包含真实敏感信息）
+**/appsettings.Local.json
+**/appsettings.*.local.json
 
 # Go 服务配置文件
 services/file-service/etc/file-api.yaml
