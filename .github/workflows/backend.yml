@@ -61,9 +61,6 @@ jobs:
           name: test-results
           path: backend/tests/**/TestResults/*.trx
 
-  # ========================================
-  # 代码质量检查
-  # ========================================
   code-quality:
     name: Code Quality
     runs-on: ubuntu-latest
