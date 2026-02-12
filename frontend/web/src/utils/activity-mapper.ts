@@ -1,6 +1,3 @@
-/**
- * Activity ViewModel 适配层 (TypeScript)
- */
 import { format, isToday, isYesterday, parseISO } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 import type { ActivityDto } from '@/api/modules/workspace'
