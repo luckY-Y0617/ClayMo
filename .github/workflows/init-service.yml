@@ -42,7 +42,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./backend
-          file: ./backend/tools/ClayMo.Tools.Platform/Dockerfile
+          file: ./docker/init.Dockerfile
           push: false
           tags: claymo-init:pr
           cache-from: type=gha
@@ -90,7 +90,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./backend
-          file: ./backend/tools/ClayMo.Tools.Platform/Dockerfile
+          file: ./docker/init.Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
