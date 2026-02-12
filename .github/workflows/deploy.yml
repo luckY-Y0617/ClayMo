@@ -43,6 +43,8 @@ jobs:
             echo "❌ CI 失败，跳过部署"
           fi
 
+
+  deploy:
     name: 部署服务
     runs-on: ubuntu-latest
     needs: check
