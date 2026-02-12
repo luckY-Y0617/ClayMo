@@ -165,7 +165,7 @@ export const DEFAULT_COMMAND_ITEMS: SlashCommandItem[] = [
         .chain()
         .focus()
         .deleteRange(range)
-        .setImage({ src: url } as Record<string, unknown>)
+        .setImage({ src: url })
         .run()
     },
   },
@@ -213,6 +213,12 @@ export const SlashCommand = Extension.create<SlashCommandOptions>({
         allowSpaces: false,
         startOfLine: true,
         items: createSuggestionItems,
+        render: () => ({
+          onStart: () => {},
+          onUpdate: () => {},
+          onKeyDown: () => false,
+          onExit: () => {},
+        }),
         command: ({
           editor,
           range,
@@ -258,19 +264,19 @@ export const SlashCommand = Extension.create<SlashCommandOptions>({
           }
 
           component = new VueRenderer(
-            commandListComponent as Parameters<typeof VueRenderer>[0],
+            commandListComponent as any,
             {
               props: withCommonProps(props),
               editor: props.editor,
             }
           )
 
-          if (!props.clientRect) return
+          if (!props.clientRect || !component.element) return
 
-          const instance = tippy('body', {
+          const instance = tippy(document.body, {
             getReferenceClientRect: props.clientRect as () => DOMRect,
             appendTo: () => document.body,
-            content: component.element,
+            content: component.element as HTMLElement,
             showOnCreate: true,
             interactive: true,
             trigger: 'manual',
@@ -310,7 +316,11 @@ export const SlashCommand = Extension.create<SlashCommandOptions>({
       Suggestion({
         editor: this.editor,
         pluginKey: slashCommandPluginKey,
-        ...this.options.suggestion,
+        char: this.options.suggestion.char,
+        allowSpaces: this.options.suggestion.allowSpaces,
+        startOfLine: this.options.suggestion.startOfLine,
+        items: this.options.suggestion.items,
+        command: this.options.suggestion.command as any,
         render,
       }),
     ]
