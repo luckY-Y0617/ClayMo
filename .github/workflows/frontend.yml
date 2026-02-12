@@ -106,10 +106,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # ========================================
-  # Docker 构建并推送 (Push to main/develop)
-  # ========================================
-  # 注意：前端静态文件由 Gateway 统一构建和管理
+
+  # 前端静态文件由 Gateway 统一构建和管理
   # 前端变更时需要重新构建并推送 Gateway 镜像
   docker-build-and-push:
     name: Build & Push Gateway Image
