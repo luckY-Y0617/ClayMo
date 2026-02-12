@@ -67,7 +67,7 @@ export const ActivityActions = {
   USER_SETTINGS_UPDATED: 'user.settings.updated',
 } as const
 
-// ============ 图标映射 ============
+// 图标映射
 
 const IconMap: Record<string, string> = {
   'kb.created': 'kb-add',

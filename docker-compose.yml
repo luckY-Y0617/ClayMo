@@ -81,6 +81,9 @@ services:
   # 初始化服务 (migrate + seed)
   init:
     image: ${INIT_IMAGE:-ghcr.io/lucky-y0617/claymo-init:latest}
+    # build:
+    #   context: ./backend
+    #   dockerfile: ../docker/init.Dockerfile
     container_name: claymo-init
     environment:
       SqlSugar__ConnectionStrings__Default: "Server=mysql;Port=3306;Database=${MYSQL_DATABASE};Uid=root;Password=${MYSQL_ROOT_PASSWORD};Charset=utf8mb4"
@@ -102,7 +105,7 @@ services:
     image: ${GATEWAY_IMAGE:-ghcr.io/lucky-y0617/claymo-gateway:latest}
     # build:
     #   context: .
-    #   dockerfile: services/gateway/Dockerfile
+    #   dockerfile: docker/gateway.Dockerfile
     container_name: claymo-gateway
     restart: unless-stopped
     ports:
@@ -149,7 +152,7 @@ services:
     image: ${API_IMAGE:-ghcr.io/lucky-y0617/claymo-backend:latest}
     # build:
     #   context: ./backend
-    #   dockerfile: Dockerfile
+    #   dockerfile: ../docker/backend.Dockerfile
     container_name: claymo-api
     restart: unless-stopped
     ports:
@@ -184,7 +187,7 @@ services:
     image: ${FILE_SERVICE_IMAGE:-ghcr.io/lucky-y0617/claymo-file-service:latest}
     # build:
     #   context: .
-    #   dockerfile: services/file-service/Dockerfile
+    #   dockerfile: docker/file-service.Dockerfile
     container_name: claymo-file-service
     restart: unless-stopped
     ports:

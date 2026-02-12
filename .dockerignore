@@ -1,58 +1,214 @@
-# Git
-.git
+# ========================================
+# ClayMo Docker Ignore 配置
+# ========================================
+# 说明：排除不需要进入 Docker 镜像的文件
+# 优化：减少构建上下文大小，提升构建速度
+# ========================================
+
+# ============================
+# 版本控制
+# ============================
+.git/
 .gitignore
 .gitattributes
+.gitmodules
 
-# IDE
-.idea
-.vscode
+# ============================
+# IDE 和编辑器
+# ============================
+.idea/
+.vscode/
 *.swp
 *.swo
+*.swn
 *~
+*.code-workspace
 
-# Node.js
-**/node_modules
-**/.pnpm-store
+# Rider
+*.DotSettings.user
+*.sln.DotSettings.user
 
+# ============================
+# Node.js 和前端
+# ============================
+**/node_modules/
+**/.pnpm-store/
+**/pnpm-lock.yaml
+**/.npm/
+**/.yarn/
+**/yarn.lock
+**/package-lock.json
+
+# 前端构建产物（根据 Dockerfile 需要选择性排除）
+# frontend/admin/dist/
+# frontend/web/dist/
+
+# 前端临时文件
+**/.turbo/
+**/.nuxt/
+**/.output/
+**/.cache/
+
+# ============================
 # .NET
-**/bin
-**/obj
+# ============================
+**/bin/
+**/obj/
 **/*.user
 **/*.suo
+**/*.userprefs
+**/*.pidb
+**/*.config.cache
+**/*.csproj.user
 
-# Build outputs
-**/dist
-**/out
-**/build
+# .NET 测试覆盖率
+**/TestResults/
+**/coverage/
 
-# Logs (only log files, not source directories)
+# ============================
+# Go
+# ============================
+# vendor 目录（使用 go mod 不需要）
+**/vendor/
+
+# ============================
+# 构建产物
+# ============================
+**/dist/
+**/out/
+**/build/
+**/publish/
+
+# ============================
+# 日志文件
+# ============================
 **/*.log
+**/logs/
+**/*.log.*
 
-# Test
-**/coverage
-**/.nyc_output
+# ============================
+# 测试相关
+# ============================
+**/coverage/
+**/.nyc_output/
+**/test-results/
+**/__snapshots__/
 
-# Temporary files
-**/.tmp
-**/.temp
-**/.cache
+# 测试项目（根据需要排除）
+backend/tests/
 
-# Documentation (not needed in image)
+# ============================
+# 临时文件
+# ============================
+**/.tmp/
+**/.temp/
+**/.cache/
+**/tmp/
+**/*.tmp
+**/*.temp
+**/*.bak
+**/*.swp
+
+# ============================
+# 文档
+# ============================
 *.md
 !README.md
 docs/
+*.txt
+!requirements.txt
 
-# Scripts (not needed in image)
+# ============================
+# 脚本和工具
+# ============================
 scripts/
+tools/
+*.sh
+*.ps1
+*.bat
+*.cmd
 
-# Development files
+# 保留特定脚本（如果需要）
+# !docker-entrypoint.sh
+
+# ============================
+# 配置文件（开发环境）
+# ============================
 docker-compose*.yml
-.env*
+.env
+.env.*
+!.env.example
 *.local
+.editorconfig
 
+# ============================
+# Docker 相关
+# ============================
+Dockerfile*
+!Dockerfile
+.dockerignore
+docker/
+
+# ============================
+# 数据和存储
+# ============================
+infra/mysql/data/
+infra/mysql/init/
+infra/cert/
+**/data/
+**/uploads/
+**/storage/
+
+# ============================
+# 操作系统
+# ============================
 # macOS
 .DS_Store
+.AppleDouble
+.LSOverride
 
 # Windows
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ============================
+# CI/CD
+# ============================
+.github/
+.gitlab-ci.yml
+.circleci/
+azure-pipelines.yml
+Jenkinsfile
+
+# ============================
+# 安全和密钥
+# ============================
+**/*.key
+**/*.pem
+**/*.crt
+**/*.pfx
+**/*.p12
+secrets/
+.secrets/
+
+# ============================
+# 其他
+# ============================
+LICENSE
+CHANGELOG.md
+TODO.md
+.prettierrc*
+.eslintrc*
+eslint.config.js
+.prettierignore
+.eslintignore
+tsconfig*.json
+!tsconfig.json
 
