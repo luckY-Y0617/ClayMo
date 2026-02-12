@@ -3,7 +3,7 @@ name: Deploy to Production
 on:
   # 当 main 分支的 CI 成功后自动触发
   workflow_run:
-    workflows: ["Backend CI/CD", "File Service CI"]
+    workflows: ["Backend CI/CD", "File Service CI", "Frontend CI", "Gateway CI"]
     types: [completed]
     branches: [main]
   # 支持手动触发
