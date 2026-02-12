@@ -1,6 +1,3 @@
-/**
- * 路由守卫
- */
 import type { Router } from 'vue-router'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
