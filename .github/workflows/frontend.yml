@@ -6,6 +6,7 @@ on:
     paths:
       - 'frontend/**'
       - 'packages/**'
+      - 'services/gateway/**'
       - 'pnpm-workspace.yaml'
       - 'package.json'
       - 'tsconfig.base.json'
@@ -15,6 +16,7 @@ on:
     paths:
       - 'frontend/**'
       - 'packages/**'
+      - 'services/gateway/**'
       - 'pnpm-workspace.yaml'
       - 'package.json'
       - 'tsconfig.base.json'

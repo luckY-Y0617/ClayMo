@@ -19,6 +19,10 @@
 #   claymo.local:5080       → 前台前端
 #   /api/*                  → API 服务 (反向代理)
 #   /fs/*                   → 文件服务 (反向代理)
+#
+# 配置方式：
+#   生产环境：在项目根目录创建 .env 文件覆盖默认值
+#   开发环境：使用默认值 + appsettings.Development.json
 # ================================================
 
 name: claymo
@@ -33,7 +37,7 @@ services:
     container_name: claymo-mysql
     restart: unless-stopped
     ports:
-      - "3307:3306"  # Using 3307 to avoid conflict with local MySQL
+      - "${MYSQL_PORT:-3307}:3306"
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-claymo_host}
@@ -61,7 +65,7 @@ services:
     container_name: claymo-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
     command: redis-server --appendonly yes ${REDIS_PASSWORD:+--requirepass ${REDIS_PASSWORD}}
     volumes:
       - redis_data:/data
@@ -73,15 +77,15 @@ services:
     networks:
       - claymo-network
 
-  # Kafka (可选 - 文件服务异步消息) - 使用 Confluent 镜像 KRaft 模式
+  # Kafka (消息队列 - 文件服务异步处理)
+  # 使用 Confluent KRaft 模式（无需 Zookeeper）
   kafka:
     image: confluentinc/cp-kafka:latest
     container_name: claymo-kafka
     restart: unless-stopped
     ports:
-      - "9092:9092"
+      - "${KAFKA_PORT:-9092}:9092"
     environment:
-      # KRaft 模式配置
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
@@ -112,9 +116,10 @@ services:
   # ============================
 
   init:
-    build:
-      context: ./backend
-      dockerfile: tools/ClayMo.Tools.Platform/Dockerfile
+    image: ${INIT_IMAGE:-ghcr.io/lucky-y0617/claymo-init:latest}
+    # build:
+    #   context: ./backend
+    #   dockerfile: tools/ClayMo.Tools.Platform/Dockerfile
     container_name: claymo-init
     environment:
       SqlSugar__ConnectionStrings__Default: "Server=mysql;Port=3306;Database=${MYSQL_DATABASE:-claymo_host};Uid=root;Password=${MYSQL_ROOT_PASSWORD:-123456};Charset=utf8mb4"
@@ -145,38 +150,38 @@ services:
     container_name: claymo-gateway
     restart: unless-stopped
     ports:
-      - "5080:5080"    # HTTP
-      - "5443:5443"    # HTTPS（配置证书后可用）
+      - "${GATEWAY_HTTP_PORT:-5080}:5080"
+      - "${GATEWAY_HTTPS_PORT:-5443}:5443"
     volumes:
       # 证书目录（如果没有证书文件，只使用 HTTP）
       - ${CERT_PATH:-./infra/cert}:/app/cert:ro
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
-      # HTTP + HTTPS 双端口（证书可选）
       ASPNETCORE_URLS: ${ASPNETCORE_URLS:-http://+:5080}
-      
-      # ========== 子域名配置 ==========
+      # 子域名配置
       Domains__AdminPrefix: ${ADMIN_PREFIX:-admin.}
-      
-      # ========== CORS 配置 ==========
-      # 开发/临时环境：允许所有（使用 IP 访问）
-      # 生产环境：配置具体域名
+      # CORS 配置（生产环境建议配置具体域名，开发环境使用 *）
       Cors__Origins__0: ${CORS_ORIGIN_0:-*}
       Cors__Origins__1: ${CORS_ORIGIN_1:-}
       Cors__Origins__2: ${CORS_ORIGIN_2:-}
-      
-      # ========== HTTPS 证书配置（可选）==========
-      # 如果不配置或文件不存在，自动降级为仅 HTTP
+      # 反向代理配置（指向容器服务名）
+      ReverseProxy__Clusters__api-cluster__Destinations__api-service__Address: http://api:19001
+      ReverseProxy__Clusters__file-cluster__Destinations__file-service__Address: http://file-service:8889
+      # HTTPS 证书配置（可选，配置后自动启用 HTTPS）
       Kestrel__Endpoints__Https__Url: ${HTTPS_URL:-}
       Kestrel__Endpoints__Https__Certificate__Path: ${CERT_FILE:-}
       Kestrel__Endpoints__Https__Certificate__KeyPath: ${CERT_KEY_FILE:-}
-      
-      # ========== API 路由 ==========
-      ReverseProxy__Clusters__api-cluster__Destinations__api-service__Address: http://api:19001
-      ReverseProxy__Clusters__file-cluster__Destinations__file-service__Address: http://file-service:8889
     depends_on:
       api:
         condition: service_healthy
+      file-service:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
     networks:
       - claymo-network
     profiles:
@@ -192,17 +197,19 @@ services:
     container_name: claymo-api
     restart: unless-stopped
     ports:
-      - "19001:19001"
+      - "${API_PORT:-19001}:19001"
     environment:
-      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
       ASPNETCORE_URLS: http://+:19001
-      # 数据库
+      # 数据库配置
       SqlSugar__ConnectionStrings__Default: "Server=mysql;Port=3306;Database=${MYSQL_DATABASE:-claymo_host};Uid=root;Password=${MYSQL_ROOT_PASSWORD:-123456}"
-      # Redis
+      # Redis 配置
       Redis__Configuration: "redis:6379${REDIS_PASSWORD:+,password=${REDIS_PASSWORD}}"
-      # JWT
-      Jwt__SecretKey: ${JWT_SECRET_KEY:-DevSecretKeyAtLeast32CharactersLong!}
-      # 文件服务 - 使用云端存储（通过环境变量配置）
+      # 认证配置（必须与 appsettings.json 中的 Authentication 配置节对应）
+      Authentication__Jwt__SigningKey: ${JWT_SECRET_KEY:-DevSecretKeyAtLeast32CharactersLong!}
+      Authentication__Jwt__Issuer: ${JWT_ISSUER:-ClayMo}
+      Authentication__Jwt__Audience: ${JWT_AUDIENCE:-ClayMo}
+      # 文件服务配置（云存储）
       FileService__HuaWeiYun__EndPoint: ${FILE_SERVICE_ENDPOINT:-}
       FileService__HuaWeiYun__AccessKeyId: ${FILE_SERVICE_ACCESS_KEY:-}
       FileService__HuaWeiYun__SecretAccessKey: ${FILE_SERVICE_SECRET_KEY:-}
@@ -231,13 +238,21 @@ services:
     container_name: claymo-file-service
     restart: unless-stopped
     ports:
-      - "8889:8889"
+      - "${FILE_SERVICE_PORT:-8889}:8889"
+    environment:
+      # 文件服务配置
+      # 根据 file-service 的具体实现添加必要的环境变量
+      # 例如：数据库、Redis、Kafka 等配置
+      KAFKA_SERVERS: kafka:9092
     volumes:
       - ./services/file-service/etc/file-api.yaml:/app/etc/file-api.yaml:ro
+      - file_data:/app/data
     depends_on:
       mysql:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      kafka:
         condition: service_healthy
     networks:
       - claymo-network
@@ -260,5 +275,7 @@ volumes:
   redis_data:
     driver: local
   kafka_data:
+    driver: local
+  file_data:
     driver: local
 
