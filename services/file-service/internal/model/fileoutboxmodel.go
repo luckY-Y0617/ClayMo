@@ -5,8 +5,6 @@ import "github.com/zeromicro/go-zero/core/stores/sqlx"
 var _ FileOutboxModel = (*customFileOutboxModel)(nil)
 
 type (
-	// FileOutboxModel is an interface to be customized, add more methods here,
-	// and implement the added methods in customFileOutboxModel.
 	FileOutboxModel interface {
 		fileOutboxModel
 	}
