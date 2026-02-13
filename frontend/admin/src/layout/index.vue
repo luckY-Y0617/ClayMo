@@ -11,7 +11,6 @@ const sidebarWidth = computed(() => (appStore.sidebarCollapsed ? '64px' : '260px
 
 <template>
   <div class="layout-container">
-    <!-- Sidebar -->
     <aside class="layout-sidebar" :style="{ width: sidebarWidth }">
       <Sidebar />
     </aside>
