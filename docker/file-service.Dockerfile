@@ -25,10 +25,13 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 
 # 复制 go.mod 和 go.sum（利用 Docker 缓存层）
 COPY services/file-service/go.mod services/file-service/go.sum ./
-COPY packages/libs/go-common/ /packages/libs/go-common/
+
+# 复制 go-common 库
+COPY packages/libs/go-common/ ../packages/libs/go-common/
 
 # 修改 go.mod 中的本地路径引用
-RUN sed -i 's|../../packages/libs/go-common|/packages/libs/go-common|g' go.mod
+RUN sed -i 's|../../packages/libs/go-common|../packages/libs/go-common|g' go.mod && \
+    cat go.mod
 
 # 下载依赖（此层会被缓存）
 RUN go mod download
@@ -37,7 +40,7 @@ RUN go mod download
 COPY services/file-service/ .
 
 # 编译应用（优化：去除调试信息和符号表）
-RUN go build -ldflags="-s -w" -o /app/file-service file.go
+RUN go build -ldflags="-s -w" -o /app/file-service .
 
 # ============================
 # 运行时镜像
