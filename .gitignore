@@ -58,6 +58,9 @@ yarn-error.log*
 .env.*.local
 *.env
 !.env.example
+# 在 .gitignore 中添加例外规则
+!frontend/web/.env
+!frontend/admin/.env
 
 # appsettings.json 配置文件
 # 允许标准环境配置文件（使用环境变量占位符）
