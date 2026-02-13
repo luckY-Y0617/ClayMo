@@ -3,6 +3,8 @@ package svc
 import (
 	"context"
 	"net/http"
+	"os"
+	"strings"
 
 	"file-service/internal/config"
 	"file-service/internal/model"
@@ -47,8 +49,10 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	rd := redis.MustNewRedis(c.Redis)
 
 	// ---------- Storage ----------
+	provider := resolveStorageProvider(c.Storage.Provider)
+	c.Storage.Provider = provider
 	var st storage.Storage
-	switch c.Storage.Provider {
+	switch provider {
 	case "s3":
 		client, err := storage.NewS3(context.Background(), storage.S3Config{
 			Region:       c.Storage.Region,
@@ -75,7 +79,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		}
 		st = client
 	default:
-		panic("unsupported storage provider: " + c.Storage.Provider)
+		panic("unsupported storage provider: " + provider)
 	}
 
 	// ---------- Kafka ----------
@@ -118,6 +122,18 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	}
 
 	return sc
+}
+
+func resolveStorageProvider(configProvider string) string {
+	envProvider := strings.TrimSpace(os.Getenv("STORAGE_PROVIDER"))
+	if envProvider != "" {
+		return strings.ToLower(envProvider)
+	}
+	normalized := strings.TrimSpace(strings.ToLower(configProvider))
+	if normalized == "" || strings.Contains(normalized, "${") {
+		return "obs"
+	}
+	return normalized
 }
 
 func (sc *ServiceContext) Close() {
