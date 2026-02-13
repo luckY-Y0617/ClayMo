@@ -58,11 +58,11 @@ export default defineConfig({
         }
       : undefined,
     proxy: {
-      // 所有 API 请求代理到网关（使用 admin 子域名，让 Gateway 设置 X-Client-Type: admin）
+      // 所有 API 请求代理到网关
       '/api': {
-        target: 'https://admin.claymo.local:5443',
+        target: 'https://localhost:5443',  // 使用 localhost
         changeOrigin: true,
-        secure: false,
+        secure: false,  // 允许自签名证书
       },
     },
   },

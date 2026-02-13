@@ -72,13 +72,13 @@ export default defineConfig({
     proxy: {
       // 所有 API 请求统一代理到网关
       '/api': {
-        target: 'https://claymo.local:5443',
+        target: 'https://localhost:5443',  // 使用 localhost
         changeOrigin: true,
         secure: false, // 允许自签名证书
       },
       // 文件服务也走网关
       '/fs': {
-        target: 'https://claymo.local:5443',
+        target: 'https://localhost:5443',  // 使用 localhost
         changeOrigin: true,
         secure: false,
       },

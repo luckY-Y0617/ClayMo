@@ -42,6 +42,8 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 
 // 子域名配置
 var adminHostPrefix = builder.Configuration.GetValue<string>("Domains:AdminPrefix") ?? "admin.";
+var devAdminPort = builder.Configuration.GetValue<int?>("Domains:Development:AdminPort") ?? 3001;
+var devWebPort = builder.Configuration.GetValue<int?>("Domains:Development:WebPort") ?? 3000;
 
 var app = builder.Build();
 
@@ -77,17 +79,52 @@ void SetCacheHeaders(StaticFileResponseContext ctx)
     }
 }
 
-// 判断当前请求是否来自 Admin 子域名
-// 例如: admin.claymo.local, admin.example.com
-bool IsAdminHost(HttpContext context) =>
-    context.Request.Host.Host.StartsWith(adminHostPrefix, StringComparison.OrdinalIgnoreCase);
+// 判断当前请求是否为 Admin 请求
+// 生产环境: 通过子域名判断 (admin.example.com)
+// 开发环境: 通过端口号判断 (localhost:3001)
+bool IsAdminRequest(HttpContext context)
+{
+    var host = context.Request.Host.Host;
+    
+    // 生产环境：子域名判断
+    if (!host.Equals("localhost", StringComparison.OrdinalIgnoreCase) && 
+        !host.Equals("127.0.0.1", StringComparison.OrdinalIgnoreCase))
+    {
+        return host.StartsWith(adminHostPrefix, StringComparison.OrdinalIgnoreCase);
+    }
+    
+    // 开发环境：端口号判断
+    // 1. 优先检查当前请求的 Host 端口
+    var port = context.Request.Host.Port;
+    if (port == devAdminPort) return true;
+    if (port == devWebPort) return false;
+    
+    // 2. 检查 Origin 头（前端跨域请求时携带）
+    var origin = context.Request.Headers["Origin"].ToString();
+    if (!string.IsNullOrEmpty(origin))
+    {
+        if (origin.Contains($":{devAdminPort}")) return true;
+        if (origin.Contains($":{devWebPort}")) return false;
+    }
+    
+    // 3. 检查 Referer 头（页面跳转时携带）
+    var referer = context.Request.Headers["Referer"].ToString();
+    if (!string.IsNullOrEmpty(referer))
+    {
+        if (referer.Contains($":{devAdminPort}")) return true;
+        if (referer.Contains($":{devWebPort}")) return false;
+    }
+    
+    // 4. 兜底：默认为 web
+    return false;
+}
 
 // Admin 子域名 (admin.*) - 静态文件
 if (Directory.Exists(adminRoot))
 {
     var adminFileProvider = new PhysicalFileProvider(adminRoot);
 
-    app.UseWhen(IsAdminHost, adminApp =>
+    app.UseWhen(IsAdminRequest, adminApp =>
     {
         adminApp.UseStaticFiles(new StaticFileOptions
         {
@@ -104,7 +141,7 @@ if (Directory.Exists(webFrontendRoot))
 {
     var webFileProvider = new PhysicalFileProvider(webFrontendRoot);
 
-    app.UseWhen(ctx => !IsAdminHost(ctx), webApp =>
+    app.UseWhen(ctx => !IsAdminRequest(ctx), webApp =>
     {
         webApp.UseStaticFiles(new StaticFileOptions
         {
@@ -121,7 +158,7 @@ app.Use(async (context, next) =>
 {
     // 防止客户端伪造：先移除再设置
     context.Request.Headers.Remove("X-Client-Type");
-    context.Request.Headers["X-Client-Type"] = IsAdminHost(context) ? "admin" : "web";
+    context.Request.Headers["X-Client-Type"] = IsAdminRequest(context) ? "admin" : "web";
     await next();
 });
 
@@ -144,7 +181,7 @@ app.MapFallback(async context =>
     }
     
     // 根据子域名选择对应的 index.html
-    var indexPath = IsAdminHost(context)
+    var indexPath = IsAdminRequest(context)
         ? Path.Combine(adminRoot, "index.html")
         : Path.Combine(webFrontendRoot, "index.html");
     

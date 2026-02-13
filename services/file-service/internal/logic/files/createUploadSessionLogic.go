@@ -30,7 +30,7 @@ func NewCreateUploadSessionLogic(ctx context.Context, svcCtx *svc.ServiceContext
 
 // CreateUploadSession 创建上传会话（Step 1）
 // POST /uploads/sessions
-// ⚠️ 不返回 fileId，只返回 sessionId（除非 dedup 秒传命中）
+// 不返回 fileId，只返回 sessionId（除非 dedup 秒传命中）
 func (l *CreateUploadSessionLogic) CreateUploadSession(req *types.CreateUploadSessionRequest) (*types.CreateUploadSessionResponse, error) {
 	tenantId, err := l.svcCtx.Auth.TenantId(l.ctx)
 	if err != nil {
