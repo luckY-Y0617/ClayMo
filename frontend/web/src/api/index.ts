@@ -10,6 +10,7 @@ export {
   weeklyCheckinApi,
 } from './modules/workspace'
 export { kbApi } from './modules/knowledge'
+export { fileApi } from './modules/file'
 
 // 类型导出
 export type {
@@ -41,10 +42,19 @@ export type {
   Tag,
 } from './modules/knowledge'
 
+export type {
+  CreateSessionRequest,
+  CreateSessionResponse,
+  CompleteSessionRequest,
+  CompleteSessionResponse,
+  FinalizeSessionResponse,
+} from './modules/file'
+
 // 默认导出
 import { authApi, captchaApi, smsApi, teamApi } from './modules/auth'
 import { workspaceApi } from './modules/workspace'
 import { kbApi } from './modules/knowledge'
+import { fileApi } from './modules/file'
 
 export default {
   auth: authApi,
@@ -53,5 +63,6 @@ export default {
   team: teamApi,
   workspace: workspaceApi,
   kb: kbApi,
+  file: fileApi,
 }
 

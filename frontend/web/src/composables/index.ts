@@ -7,3 +7,6 @@ export { useEditorSession, type EditorSession } from './useEditorSession'
 export { useDocument } from './useDocument'
 export { useComments } from './useComments'
 
+// 文件上传
+export { useFileUpload, useImageUpload } from './useFileUpload'
+

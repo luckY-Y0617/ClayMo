@@ -160,6 +160,11 @@ import {
   Document,
 } from '@element-plus/icons-vue'
 import type { Editor } from '@tiptap/vue-3'
+import { useFileUpload } from '@/composables/useFileUpload'
+
+// ========================================
+// 类型定义
+// ========================================
 
 interface EditorSession {
   editor: { value: Editor | null }
@@ -170,9 +175,23 @@ interface HeadingOption {
   label: string
 }
 
+// ========================================
+// 注入依赖
+// ========================================
+
 const editorSession = inject<EditorSession>('editorSession')
 const baseId = inject<{ value: string }>('baseId')
 const editor = computed(() => editorSession?.editor.value)
+
+// ========================================
+// 文件上传
+// ========================================
+
+const { uploadFile, isUploading, uploadProgress } = useFileUpload()
+
+// ========================================
+// UI 状态
+// ========================================
 
 const headingDropdownOpen = ref(false)
 const headingGroupRef = ref<HTMLElement | null>(null)
@@ -237,17 +256,28 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 
+// ========================================
+// 图片上传
+// ========================================
+
+/**
+ * 触发图片选择
+ */
 const handleInsertImage = () => {
   if (!imageInputRef.value) return
   imageInputRef.value.click()
 }
 
+/**
+ * 处理图片文件选择
+ */
 const onImageFileChange = async (event: Event) => {
   const target = event.target as HTMLInputElement
   const files = target.files
   if (!files || !files.length || !editor.value) return
 
   const file = files[0]
+  // 允许选择同一文件重复触发 change
   target.value = ''
 
   try {
@@ -257,26 +287,26 @@ const onImageFileChange = async (event: Event) => {
     }
 
     editor.value.chain().focus().setImage({ src: url } as Record<string, unknown>).run()
-
   } catch (error) {
     console.error('上传图片失败:', error)
     ElMessage.error('上传图片失败，请稍后重试')
   }
 }
 
+/**
+ * 上传图片到文件服务
+ */
 const uploadImage = async (file: File): Promise<string> => {
   if (!baseId?.value) {
     throw new Error('无法获取知识库ID')
   }
 
-  // TODO: 实现实际的图片上传逻辑
-  // 这里需要调用 useImageUpload composable
-  const formData = new FormData()
-  formData.append('file', file)
-  
-  // 临时返回本地 URL 用于预览
-  return URL.createObjectURL(file)
+  return await uploadFile(file, baseId.value)
 }
+
+// ========================================
+// 表格插入
+// ========================================
 
 const handleInsertTable = () => {
   if (!editor.value) return
@@ -287,21 +317,32 @@ const handleInsertTable = () => {
     .run()
 }
 
+// ========================================
+// 附件上传
+// ========================================
+
+/**
+ * 触发附件选择
+ */
 const handleInsertFile = () => {
   if (!fileInputRef.value) return
   fileInputRef.value.click()
 }
 
+/**
+ * 处理附件文件选择
+ */
 const onFileChange = async (event: Event) => {
   const target = event.target as HTMLInputElement
   const files = target.files
   if (!files || !files.length || !editor.value) return
 
   const file = files[0]
+  // 允许选择同一文件重复触发 change
   target.value = ''
 
   try {
-    const fileUrl = await uploadImage(file)
+    const fileUrl = await uploadFile(file, baseId?.value)
     if (!fileUrl) {
       throw new Error('empty url')
     }
@@ -316,7 +357,6 @@ const onFileChange = async (event: Event) => {
         fileType: file.type,
       },
     }).run()
-
   } catch (error) {
     console.error('上传附件失败:', error)
     ElMessage.error('上传附件失败，请稍后重试')
