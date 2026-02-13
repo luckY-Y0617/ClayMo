@@ -26,20 +26,18 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 # 先复制 go-common 库到构建环境
 COPY packages/libs/go-common/ /build/packages/libs/go-common/
 
-# 复制 go.mod 和 go.sum
-COPY services/file-service/go.mod services/file-service/go.sum ./
+# 复制源代码（先复制所有文件）
+COPY services/file-service/ ./
 
 # 修改 go.mod 中的本地路径引用
-RUN sed -i 's|../../packages/libs/go-common|/build/packages/libs/go-common|g' go.mod
+RUN sed -i 's|../../packages/libs/go-common|/build/packages/libs/go-common|g' go.mod && \
+    cat go.mod
 
-# 下载依赖（此层会被缓存）
+# 清理并重新整理依赖（确保 replace 指令生效）
+RUN go mod tidy
+
+# 下载依赖
 RUN go mod download
-
-# 复制源代码（排除 go.mod 和 go.sum，因为已经修改过了）
-COPY services/file-service/*.go ./
-COPY services/file-service/*.api ./
-COPY services/file-service/internal/ ./internal/
-COPY services/file-service/etc/ ./etc/
 
 # 编译应用（优化：去除调试信息和符号表）
 RUN go build -ldflags="-s -w" -o /app/file-service .
