@@ -34,7 +34,6 @@ func (p UploadPolicy) DecideMode(fileSize int64, requested string) string {
 		return req
 	}
 
-	// auto
 	if fileSize >= threshold {
 		return ModeMultipart
 	}
