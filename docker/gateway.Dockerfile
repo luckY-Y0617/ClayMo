@@ -49,7 +49,8 @@ COPY frontend/web/package.json frontend/web/
 
 # 安装依赖（此层会被缓存）
 # 使用 --ignore-scripts 跳过 prepare 钩子，避免在依赖未完全安装时运行构建脚本
-RUN pnpm install --frozen-lockfile --ignore-scripts
+# 构建阶段需要 devDependencies（例如 tsup），因此显式开启 dev 依赖安装
+RUN pnpm install --frozen-lockfile --ignore-scripts --prod=false
 
 # 复制前端源代码
 COPY frontend/ frontend/
