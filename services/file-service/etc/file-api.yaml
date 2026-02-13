@@ -10,24 +10,25 @@ Auth:
 # ========== 数据库配置 ==========
 DB:
   # 格式：user:password@tcp(host:port)/database?params
-  DataSource: "${MYSQL_USER:-root}:${MYSQL_PASSWORD}@tcp(${MYSQL_HOST:-mysql}:${MYSQL_PORT:-3306})/${MYSQL_DATABASE:-claymo_host}?charset=utf8mb4&parseTime=true&loc=Local"
+  DataSource: "${MYSQL_USER:root}:${MYSQL_PASSWORD}@tcp(${MYSQL_HOST:mysql}:${MYSQL_PORT:3306})/${MYSQL_DATABASE:claymo_host}?charset=utf8mb4&parseTime=true&loc=Local"
 
 # ========== Redis 配置 ==========
 Redis:
-  Host: "${REDIS_HOST:-redis}:${REDIS_PORT:-6379}"
+  Host: "${REDIS_HOST:redis}:${REDIS_PORT:6379}"
   Type: "node"
-  Pass: ${REDIS_PASSWORD:-}
+  Pass: ${REDIS_PASSWORD:}
 
 # ========== 缓存配置 ==========
 Cache:
-  - Host: "${REDIS_HOST:-redis}:${REDIS_PORT:-6379}"
+  - Host: "${REDIS_HOST:redis}:${REDIS_PORT:6379}"
     Type: "node"
-    Pass: ${REDIS_PASSWORD:-}
+    Pass: ${REDIS_PASSWORD:}
 
 # ========== 对象存储配置 ==========
+
 Storage:
-  Provider: ${STORAGE_PROVIDER:-obs}
-  Region: ${STORAGE_REGION:-cn-east-3}
+  Provider: ${STORAGE_PROVIDER:obs}
+  Region: ${STORAGE_REGION:cn-east-3}
   Endpoint: ${STORAGE_ENDPOINT}
   AccessKey: ${STORAGE_ACCESS_KEY}
   SecretKey: ${STORAGE_SECRET_KEY}
@@ -50,14 +51,14 @@ Internal:
 # ========== Kafka 配置 ==========
 Kafka:
   Brokers:
-    - "${KAFKA_HOST:-kafka}:${KAFKA_PORT:-9092}"
+    - "${KAFKA_HOST:kafka}:${KAFKA_PORT:9092}"
   TopicTranscode: "file-transcode-tasks"
   TopicOutbox: "file-outbox-events"
 
 # ========== CORS 配置 ==========
 CORS:
   AllowedOrigins:
-    - ${CORS_ORIGIN_0:-*}
+    - ${CORS_ORIGIN_0:*}
   AllowedMethods:
     - GET
     - POST
