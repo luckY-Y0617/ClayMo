@@ -23,23 +23,23 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
     apk add --no-cache git ca-certificates tzdata && \
     rm -rf /var/cache/apk/*
 
-# 复制 go.mod 和 go.sum（利用 Docker 缓存层）
-COPY services/file-service/go.mod services/file-service/go.sum ./
-
-# 复制 go-common 库到正确的位置
+# 先复制 go-common 库到构建环境
 COPY packages/libs/go-common/ /build/packages/libs/go-common/
 
-# 修改 go.mod 中的本地路径引用为 Docker 构建环境中的路径
+# 复制 go.mod 和 go.sum
+COPY services/file-service/go.mod services/file-service/go.sum ./
+
+# 修改 go.mod 中的本地路径引用
 RUN sed -i 's|../../packages/libs/go-common|/build/packages/libs/go-common|g' go.mod
 
 # 下载依赖（此层会被缓存）
 RUN go mod download
 
-# 验证模块（确保 replace 指令生效）
-RUN go mod verify
-
-# 复制源代码
-COPY services/file-service/ .
+# 复制源代码（排除 go.mod 和 go.sum，因为已经修改过了）
+COPY services/file-service/*.go ./
+COPY services/file-service/*.api ./
+COPY services/file-service/internal/ ./internal/
+COPY services/file-service/etc/ ./etc/
 
 # 编译应用（优化：去除调试信息和符号表）
 RUN go build -ldflags="-s -w" -o /app/file-service .
