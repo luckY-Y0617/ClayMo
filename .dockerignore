@@ -158,6 +158,8 @@ infra/cert/
 **/data/
 **/uploads/
 **/storage/
+!packages/libs/go-common/storage/
+!packages/libs/go-common/storage/**
 
 # ============================
 # 操作系统
