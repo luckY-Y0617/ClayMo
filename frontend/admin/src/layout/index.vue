@@ -15,7 +15,6 @@ const sidebarWidth = computed(() => (appStore.sidebarCollapsed ? '64px' : '260px
       <Sidebar />
     </aside>
 
-    <!-- Main Content -->
     <div class="layout-main" :style="{ marginLeft: sidebarWidth }">
       <!-- Header -->
       <Header />
