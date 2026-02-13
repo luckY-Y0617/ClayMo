@@ -104,6 +104,5 @@ func IsSupportedMode(mode string) bool {
 
 func ceilDivInt64ToInt(a, b int64) int {
 	// b > 0 assumed by caller
-
 	return int((a + b - 1) / b)
 }

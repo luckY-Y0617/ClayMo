@@ -26,11 +26,16 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 # 先复制 go-common 库到构建环境
 COPY packages/libs/go-common/ /build/packages/libs/go-common/
 
+# 验证 go-common 目录结构（调试）
+RUN ls -la /build/packages/libs/go-common/ && \
+    ls -la /build/packages/libs/go-common/storage/
+
 # 复制源代码（先复制所有文件）
 COPY services/file-service/ ./
 
 # 修改 go.mod 中的本地路径引用
 RUN sed -i 's|../../packages/libs/go-common|/build/packages/libs/go-common|g' go.mod && \
+    echo "=== Modified go.mod ===" && \
     cat go.mod
 
 # 清理并重新整理依赖（确保 replace 指令生效）
