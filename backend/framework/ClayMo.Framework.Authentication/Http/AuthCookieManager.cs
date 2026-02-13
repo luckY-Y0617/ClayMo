@@ -7,11 +7,6 @@ using Volo.Abp.DependencyInjection;
 
 namespace ClayMo.Framework.Authentication.Http;
 
-/// <summary>
-/// 默认 Cookie 管理实现
-/// - 使用 AuthOptions.Token 的 refresh cookie 配置
-/// - 使用 AuthOptions.Session 的 admin session cookie 配置
-/// </summary>
 public sealed class AuthCookieManager : IAuthCookieManager, ITransientDependency
 {
     private readonly IHttpContextAccessor _httpContextAccessor;

@@ -87,7 +87,7 @@ services:
     container_name: claymo-init
     environment:
       SqlSugar__ConnectionStrings__Default: "Server=mysql;Port=3306;Database=${MYSQL_DATABASE};Uid=root;Password=${MYSQL_ROOT_PASSWORD};Charset=utf8mb4"
-      SqlSugar__DbTypes__Default: "${MYSQL_DATABASE}"
+      SqlSugar__DbTypes__Default: "${DEFAULT_DBTYPE}"
       Redis__Configuration: "redis:6379${REDIS_PASSWORD:+,password=${REDIS_PASSWORD}}"
     entrypoint: ["/bin/sh", "-c"]
     command: ["dotnet ClayMo.Tools.Platform.dll migrate host && dotnet ClayMo.Tools.Platform.dll seed host"]
@@ -162,7 +162,7 @@ services:
       ASPNETCORE_URLS: http://+:19001
       # 数据库配置
       SqlSugar__ConnectionStrings__Default: "Server=mysql;Port=3306;Database=${MYSQL_DATABASE:-claymo_host};Uid=root;Password=${MYSQL_ROOT_PASSWORD:-123456}"
-      SqlSugar__DbTypes__Default: "${MYSQL_DATABASE}"
+      SqlSugar__DbTypes__Default: "${DEFAULT_DBTYPE}"
       # Redis 配置
       Redis__Configuration: "redis:6379${REDIS_PASSWORD:+,password=${REDIS_PASSWORD}}"
       # 认证配置（必须与 appsettings.json 中的 Authentication 配置节对应）
