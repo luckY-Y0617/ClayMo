@@ -585,7 +585,8 @@ onBeforeUnmount(() => {
   margin-left: 0;
 }
 
-/* 响应式设计 */
+/* ======== 响应式设计 ======== */
+
 @media (max-width: 1200px) {
   .sidebar {
     width: 260px;
@@ -608,6 +609,107 @@ onBeforeUnmount(() => {
     height: 28px;
     min-width: 28px;
     min-height: 28px;
+  }
+}
+
+/* 平板和手机 */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 280px;
+    max-width: 80vw;
+    height: 100%;
+    padding: 16px 12px;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .sidebar-header {
+    padding-bottom: 12px;
+  }
+
+  .sidebar-title h3 {
+    font-size: 0.875rem;
+  }
+
+  .back-button {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+  }
+
+  /* 大纲区域在移动端隐藏，避免占用过多空间 */
+  .outline-section {
+    display: none;
+  }
+
+  /* 文档区域占据更多空间 */
+  .documents-section {
+    flex: 1;
+  }
+}
+
+/* 中等手机 */
+@media (max-width: 640px) {
+  .sidebar {
+    width: 260px;
+    max-width: 75vw;
+    padding: 14px 10px;
+  }
+
+  .sidebar-header {
+    padding-bottom: 10px;
+  }
+
+  .sidebar-title h3 {
+    font-size: 0.8125rem;
+  }
+
+  .back-button {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    min-height: 30px;
+  }
+
+  .sidebar-content {
+    gap: 16px;
+  }
+}
+
+/* 小屏手机 */
+@media (max-width: 480px) {
+  .sidebar {
+    width: 240px;
+    max-width: 70vw;
+    padding: 12px 8px;
+  }
+
+  .sidebar-header {
+    padding-bottom: 8px;
+    gap: 8px;
+  }
+
+  .header-line {
+    gap: 8px;
+  }
+
+  .sidebar-title h3 {
+    font-size: 0.75rem;
+  }
+
+  .back-button {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+  }
+
+  .sidebar-content {
+    gap: 12px;
+  }
+
+  .section-title {
+    font-size: 0.625rem;
   }
 }
 </style>

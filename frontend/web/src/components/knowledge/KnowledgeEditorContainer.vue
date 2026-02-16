@@ -1,14 +1,32 @@
 <template>
   <div class="knowledge-editor" :class="{ 'knowledge-editor--preview': isPreviewing }">
+    <!-- 移动端遮罩层 -->
+    <div 
+      class="mobile-overlay"
+      :class="{ 'visible': layout.mobileSidebarVisible }"
+      @click="layout.mobileSidebarVisible = false"
+    ></div>
+
     <div class="editor-layout">
       <!-- 侧边栏 -->
       <Sidebar
+        class="sidebar-wrapper"
+        :class="{ 'visible': layout.mobileSidebarVisible }"
         :collapsed="layout.sidebarCollapsed"
         :can-create-doc="canCreateDoc"
         :can-delete-doc="canDeleteDoc"
         :can-move-doc="canMoveDoc"
         @toggle-collapse="layout.sidebarCollapsed = !layout.sidebarCollapsed"
       />
+
+      <!-- 移动端侧边栏切换按钮 -->
+      <button 
+        class="mobile-sidebar-toggle"
+        @click="layout.mobileSidebarVisible = !layout.mobileSidebarVisible"
+        :title="layout.mobileSidebarVisible ? '关闭侧边栏' : '打开侧边栏'"
+      >
+        <span class="toggle-icon">{{ layout.mobileSidebarVisible ? '✕' : '☰' }}</span>
+      </button>
 
       <div class="main-area">
         <!-- 顶栏 -->
@@ -196,6 +214,7 @@ interface ModalsState {
 interface LayoutState {
   sidebarCollapsed: boolean
   mode: 'write' | 'preview' | 'manage'
+  mobileSidebarVisible: boolean
 }
 
 const route = useRoute()
@@ -294,6 +313,7 @@ const modals = ref<ModalsState>({
 const layout = ref<LayoutState>({
   sidebarCollapsed: false,
   mode: 'write',
+  mobileSidebarVisible: false,
 })
 
 const isPreviewing = computed(() => layout.value.mode === 'preview' || isReadOnly.value)
@@ -802,6 +822,260 @@ const handleEditorReady = (editor: Editor) => {
 .page-transition-leave-to {
   opacity: 0;
   transform: translateY(-8px);
+}
+
+/* ======== 移动端遮罩层和切换按钮 ======== */
+
+.mobile-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.mobile-sidebar-toggle {
+  display: none;
+  position: fixed;
+  bottom: 24px;
+  left: 16px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  color: #333;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  z-index: 998;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-sidebar-toggle:active {
+  transform: scale(0.92);
+}
+
+.mobile-sidebar-toggle:hover {
+  background: #FFFFFF;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  transform: translateY(-2px);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+.toggle-icon {
+  font-size: 20px;
+  line-height: 1;
+  display: block;
+  font-weight: 400;
+}
+
+/* ======== 响应式设计 ======== */
+
+/* 平板和手机 */
+@media (max-width: 768px) {
+  .knowledge-editor {
+    height: 100vh;
+    height: 100dvh; /* 动态视口高度，适配移动端浏览器地址栏 */
+  }
+
+  .editor-layout {
+    position: relative;
+  }
+
+  /* 显示移动端遮罩层 */
+  .mobile-overlay {
+    display: block;
+  }
+
+  .mobile-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* 显示移动端切换按钮 */
+  .mobile-sidebar-toggle {
+    display: flex;
+  }
+
+  /* 侧边栏wrapper */
+  .sidebar-wrapper {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sidebar-wrapper.visible {
+    transform: translateX(0);
+  }
+
+  /* 主内容区域占满宽度 */
+  .main-area {
+    width: 100%;
+    box-shadow: none;
+  }
+
+  .editor-and-comments {
+    flex-direction: column;
+  }
+
+  .editor-container-wrapper {
+    width: 100%;
+  }
+
+  .editor-main {
+    padding: 16px;
+  }
+
+  /* 预览模式 */
+  .knowledge-editor--preview .editor-main {
+    padding: 24px 16px;
+  }
+
+  /* 评论面板在移动端改为底部抽屉 */
+  .document-search-results {
+    max-height: 60vh;
+  }
+
+  .document-search-item {
+    padding: 10px;
+    gap: 10px;
+    border-radius: 10px;
+    margin-bottom: 6px;
+  }
+
+  .document-search-item-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    font-size: 16px;
+  }
+
+  .document-search-item-title {
+    font-size: 14px;
+  }
+
+  .document-search-item-meta {
+    font-size: 12px;
+  }
+
+  /* 移动端切换按钮 */
+  .mobile-sidebar-toggle {
+    bottom: 20px;
+    left: 12px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .toggle-icon {
+    font-size: 18px;
+  }
+}
+
+/* 中等手机 */
+@media (max-width: 640px) {
+  .editor-main {
+    padding: 12px;
+  }
+
+  .knowledge-editor--preview .editor-main {
+    padding: 20px 12px;
+  }
+
+  .document-search-results {
+    max-height: 50vh;
+  }
+
+  .document-search-item {
+    padding: 8px;
+    gap: 8px;
+    border-radius: 8px;
+    margin-bottom: 4px;
+  }
+
+  .document-search-item-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+
+  .document-search-item-title {
+    font-size: 13px;
+  }
+
+  .document-search-item-meta {
+    font-size: 11px;
+  }
+
+  .mobile-sidebar-toggle {
+    bottom: 16px;
+    left: 10px;
+    width: 42px;
+    height: 42px;
+  }
+
+  .toggle-icon {
+    font-size: 17px;
+  }
+}
+
+/* 小屏手机 */
+@media (max-width: 480px) {
+  .editor-main {
+    padding: 10px;
+  }
+
+  .knowledge-editor--preview .editor-main {
+    padding: 16px 10px;
+  }
+
+  .document-search-results {
+    max-height: 40vh;
+  }
+
+  .document-search-item {
+    padding: 6px;
+    gap: 6px;
+    border-radius: 6px;
+  }
+
+  .document-search-item-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 5px;
+    font-size: 12px;
+  }
+
+  .document-search-item-title {
+    font-size: 12px;
+  }
+
+  .document-search-item-meta {
+    font-size: 10px;
+  }
+
+  .mobile-sidebar-toggle {
+    bottom: 14px;
+    left: 8px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .toggle-icon {
+    font-size: 16px;
+  }
 }
 </style>
 

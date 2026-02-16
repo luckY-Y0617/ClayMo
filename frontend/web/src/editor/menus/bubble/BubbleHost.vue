@@ -273,6 +273,13 @@ const hideBubble = () => {
   bubbleStyle.value.pointerEvents = 'none'
 }
 
+/**
+ * ========== 定位计算逻辑 ==========
+ * 移动端优化版本：
+ * 1. 动态计算边界padding
+ * 2. 确保bubble不会超出视窗
+ * 3. 响应式宽度限制
+ */
 const updatePosition = () => {
   if (!shouldShowBubble.value || !bubbleEl.value) {
     hideBubble()
@@ -292,16 +299,44 @@ const updatePosition = () => {
   lastValidRect = rect
   const bubbleHeight = bubbleEl.value?.offsetHeight || 44
   const bubbleWidth = bubbleEl.value?.offsetWidth || 200
-  let top = lastValidRect.top - bubbleHeight - props.gap
-  let left = lastValidRect.left + (lastValidRect.width / 2) - (bubbleWidth / 2)
-  const toolbarEl = document.querySelector('.format-toolbar')
-  const toolbarBottom = toolbarEl?.getBoundingClientRect?.().bottom || props.stickyTop
-  if (top < toolbarBottom + 4) top = lastValidRect.top + lastValidRect.height + props.gap
+  
+  // 移动端检测
   const vw = window.innerWidth
   const vh = window.innerHeight
-  left = Math.max(8, Math.min(left, vw - bubbleWidth - 8))
-  top = Math.max(8, Math.min(top, vh - bubbleHeight - 8))
-  bubbleStyle.value = { position: 'fixed', top: `${Math.round(top)}px`, left: `${Math.round(left)}px`, zIndex: 10000, opacity: 1, pointerEvents: 'auto' }
+  const isMobile = vw <= 768
+  
+  // 根据设备类型设置边界padding
+  const edgePadding = isMobile ? 16 : 8
+  
+  // 确保bubble不会超出视窗宽度
+  const maxBubbleWidth = vw - (edgePadding * 2)
+  const actualBubbleWidth = Math.min(bubbleWidth, maxBubbleWidth)
+  
+  // 计算垂直位置
+  let top = lastValidRect.top - bubbleHeight - props.gap
+  const toolbarEl = document.querySelector('.format-toolbar')
+  const toolbarBottom = toolbarEl?.getBoundingClientRect?.().bottom || props.stickyTop
+  if (top < toolbarBottom + 4) {
+    top = lastValidRect.top + lastValidRect.height + props.gap
+  }
+  
+  // 计算水平位置（居中对齐）
+  let left = lastValidRect.left + (lastValidRect.width / 2) - (actualBubbleWidth / 2)
+  
+  // 边界限制
+  left = Math.max(edgePadding, Math.min(left, vw - actualBubbleWidth - edgePadding))
+  top = Math.max(edgePadding, Math.min(top, vh - bubbleHeight - edgePadding))
+  
+  // 应用样式
+  bubbleStyle.value = { 
+    position: 'fixed', 
+    top: `${Math.round(top)}px`, 
+    left: `${Math.round(left)}px`, 
+    maxWidth: `${maxBubbleWidth}px`,
+    zIndex: 10000, 
+    opacity: 1, 
+    pointerEvents: 'auto' 
+  }
 }
 
 const scheduleUpdatePosition = () => {
@@ -585,12 +620,14 @@ const handlePreview = async (attrs: PreviewAttrs) => {
 provide('bubbleContext', { isLocked, clearAllHoverState, runActionSafely })
 </script>
 
+<!-- ========== 样式定义 ========== -->
 <style scoped>
 .kb-bubble-host {
   display: flex;
   align-items: center;
   animation: bubble-fade-in 0.12s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   will-change: transform, opacity;
+  box-sizing: border-box;
 }
 
 @keyframes bubble-fade-in {
@@ -601,6 +638,34 @@ provide('bubbleContext', { isLocked, clearAllHoverState, runActionSafely })
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
+  }
+}
+
+/* ========== 移动端响应式适配 ========== */
+@media (max-width: 768px) {
+  .kb-bubble-host {
+    max-width: calc(100vw - 32px) !important;
+    min-width: auto !important;
+  }
+  
+  /* 确保子面板也响应式 */
+  .kb-bubble-host :deep(*) {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+/* 小屏手机优化 */
+@media (max-width: 480px) {
+  .kb-bubble-host {
+    max-width: calc(100vw - 24px) !important;
+  }
+}
+
+/* 横屏模式优化 */
+@media (max-width: 768px) and (orientation: landscape) {
+  .kb-bubble-host {
+    max-width: calc(100vw - 40px) !important;
   }
 }
 </style>

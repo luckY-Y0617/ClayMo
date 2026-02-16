@@ -502,5 +502,134 @@ const onFileChange = async (event: Event) => {
   width: 16px;
   height: 16px;
 }
+
+/* ======== 响应式设计 ======== */
+
+/* 平板和手机 */
+@media (max-width: 768px) {
+  .format-toolbar {
+    padding: 8px 16px;
+    gap: 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+  }
+
+  .format-toolbar::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+  }
+
+  .toolbar-group {
+    gap: 1px;
+    padding: 3px;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+
+  .tool-btn {
+    min-width: 28px;
+    height: 28px;
+    padding: 0 6px;
+    font-size: 13px;
+    border-radius: 5px;
+  }
+
+  .heading-btn {
+    padding-right: 3px;
+    font-size: 13px;
+  }
+
+  .caret-icon {
+    font-size: 11px;
+  }
+
+  .heading-dropdown {
+    min-width: 120px;
+  }
+
+  .heading-option {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
+/* 中等手机 */
+@media (max-width: 640px) {
+  .format-toolbar {
+    padding: 6px 12px;
+    gap: 4px;
+  }
+
+  .toolbar-group {
+    gap: 0;
+    padding: 2px;
+  }
+
+  .tool-btn {
+    min-width: 26px;
+    height: 26px;
+    padding: 0 5px;
+    font-size: 12px;
+  }
+
+  .heading-btn {
+    padding-right: 2px;
+    font-size: 12px;
+  }
+
+  .caret-icon {
+    font-size: 10px;
+  }
+
+  .heading-dropdown {
+    min-width: 110px;
+  }
+
+  .heading-option {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+}
+
+/* 小屏手机 */
+@media (max-width: 480px) {
+  .format-toolbar {
+    padding: 5px 10px;
+    gap: 3px;
+  }
+
+  .toolbar-group {
+    gap: 0;
+    padding: 2px;
+  }
+
+  .tool-btn {
+    min-width: 24px;
+    height: 24px;
+    padding: 0 4px;
+    font-size: 11px;
+    border-radius: 4px;
+  }
+
+  .heading-btn {
+    padding-right: 2px;
+    font-size: 11px;
+  }
+
+  .caret-icon {
+    font-size: 9px;
+  }
+
+  .heading-dropdown {
+    min-width: 100px;
+    top: calc(100% + 4px);
+  }
+
+  .heading-option {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+}
 </style>
 

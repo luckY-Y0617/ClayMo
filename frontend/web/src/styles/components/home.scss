@@ -595,7 +595,7 @@
   }
 
   .page-content {
-    grid-template-columns: 1fr 280px;
+    grid-template-columns: 1fr;
     gap: 20px;
     padding: 20px 24px;
     height: auto;
@@ -603,6 +603,12 @@
   }
 
   .side-nav {
+    display: none;
+  }
+
+  // 隐藏右侧"今日状态"组件
+  .today-status-container,
+  aside:last-child {
     display: none;
   }
 }
@@ -613,15 +619,19 @@
   }
 
   .page-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-    padding: 12px 16px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 16px;
+    height: auto;
   }
 
   .toolbar-left {
-    flex-wrap: wrap;
-    gap: 10px;
+    flex: 1;
+    gap: 8px;
+    min-width: 0;
+    flex-wrap: nowrap;
   }
 
   .toolbar-brand,
@@ -629,68 +639,157 @@
     display: none;
   }
 
-  .toolbar-title h1 {
-    font-size: 1.25rem;
+  .toolbar-title {
+    min-width: 0;
+
+    h1 {
+      font-size: 1.15rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 
   .lab-eyebrow {
-    font-size: 0.65rem;
+    display: none;
   }
 
   .toolbar-right {
-    width: 100%;
-    justify-content: space-between;
+    width: auto;
+    flex-shrink: 0;
+    justify-content: flex-end;
+    gap: 8px;
   }
 
   .nav-links {
-    flex-wrap: wrap;
     gap: 4px;
   }
 
   .nav-link {
-    padding: 6px 10px;
+    padding: 6px 12px;
     font-size: 0.8rem;
+  }
+
+  .calendar-trigger {
+    padding: 6px 10px;
+  }
+
+  .trigger-datetime {
+    gap: 2px;
+  }
+
+  .trigger-time {
+    font-size: 0.85rem;
+  }
+
+  .trigger-date {
+    font-size: 0.65rem;
   }
 
   .page-content {
     grid-template-columns: 1fr;
     gap: 16px;
-    padding: 16px;
+    padding: 16px 12px;
+    padding-bottom: 80px;
   }
 
   .account-fab {
     right: 16px;
+    bottom: 20px;
+    width: 50px;
+    height: 50px;
+    z-index: 999;
+  }
+
+  .account-menu {
+    bottom: 65px;
+  }
+
+  .calendar-panel-overlay {
+    padding: 60px 12px 12px;
+    justify-content: center;
+  }
+
+  .calendar-panel {
+    width: 100%;
+    max-width: 360px;
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
+  }
+
+  .panel-footer {
+    .events-list {
+      max-height: 120px;
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .page-toolbar {
+    padding: 8px 12px;
+  }
+
+  .toolbar-title h1 {
+    font-size: 1rem;
+  }
+
+  .nav-link {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+  }
+
+  .page-content {
+    padding: 12px 8px;
+    gap: 12px;
+    padding-bottom: 70px;
+  }
+
+  .account-fab {
+    right: 12px;
     bottom: 16px;
-    width: 48px;
-    height: 48px;
+    width: 46px;
+    height: 46px;
+  }
+
+  .account-menu {
+    bottom: 60px;
   }
 }
 
 @media (max-width: 480px) {
   .page-toolbar {
-    padding: 10px 12px;
+    padding: 8px 10px;
   }
 
   .toolbar-title h1 {
-    font-size: 1.1rem;
+    font-size: 0.95rem;
   }
 
   .nav-link {
-    padding: 5px 8px;
-    font-size: 0.75rem;
+    padding: 4px 8px;
+    font-size: 0.7rem;
+  }
+
+  .calendar-trigger {
+    padding: 4px 8px;
 
     svg {
-      display: none;
+      width: 14px;
+      height: 14px;
     }
   }
 
+  .trigger-time {
+    font-size: 0.8rem;
+  }
+
   .page-content {
-    padding: 12px;
-    gap: 12px;
+    padding: 10px 6px;
+    gap: 10px;
   }
 
   .account-fab {
-    right: 12px;
+    right: 10px;
     bottom: 12px;
     width: 44px;
     height: 44px;

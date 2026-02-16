@@ -1089,46 +1089,51 @@ defineExpose({
 /* 评论按钮 */
 .comment-toggle-btn {
   position: fixed;
-  top: 80px;
-  right: 24px;
-  z-index: 100;
+  bottom: 24px;
+  right: 16px;
+  z-index: 998;
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  border: none;
-  background: #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: #FFFFFF;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   color: #333;
 }
 
 .comment-toggle-btn:hover {
-  background: rgba(22, 93, 255, 0.08);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.16);
+  background: #FFFFFF;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
   transform: translateY(-2px);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+.comment-toggle-btn:active {
+  transform: translateY(-2px) scale(0.92);
 }
 
 .comment-count {
   position: absolute;
-  top: -4px;
-  right: -4px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 4px;
-  background: #2254f4;
+  top: -2px;
+  right: -2px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #ffffff;
-  border-radius: 9px;
+  border-radius: 10px;
   font-size: 11px;
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 2px solid #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
 }
 
 /* 预览模式样式 */
@@ -1164,6 +1169,392 @@ defineExpose({
 :deep(.kb-img:hover) {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   transform: translateY(-1px);
+}
+
+/* ======== 响应式设计 ======== */
+
+/* 平板和手机 */
+@media (max-width: 768px) {
+  .editor-content {
+    padding: 0 16px 100px;
+    max-width: 100%;
+    min-height: 400px;
+  }
+
+  /* 评论按钮 */
+  .comment-toggle-btn {
+    bottom: 20px;
+    right: 12px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .comment-count {
+    min-width: 18px;
+    height: 18px;
+    font-size: 10px;
+    border-radius: 9px;
+  }
+
+  /* 评论预览弹框 */
+  .comment-preview-popup {
+    width: 260px;
+  }
+
+  .comment-preview-content {
+    height: 100px;
+  }
+
+  .comment-preview-nav {
+    width: 26px;
+    height: 26px;
+  }
+
+  .comment-preview-nav--prev {
+    left: -32px;
+  }
+
+  .comment-preview-nav--next {
+    right: -32px;
+  }
+
+  .comment-preview-card {
+    padding: 12px 38px 28px 14px;
+  }
+
+  .comment-preview-card--single {
+    padding: 12px 14px 14px 14px;
+  }
+
+  .comment-preview-card-author {
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+
+  .comment-preview-card-content {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .comment-preview-pagination {
+    font-size: 10px;
+    bottom: 6px;
+    right: 10px;
+    padding: 1px 5px;
+  }
+
+  /* 评论工具提示 */
+  .comment-preview-tooltip {
+    max-width: 240px;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .comment-preview-author {
+    font-size: 12px;
+  }
+
+  .comment-preview-count {
+    font-size: 10px;
+  }
+
+  .comment-preview-text {
+    font-size: 12px;
+  }
+
+  /* TipTap 编辑器内容 */
+  :deep(.ProseMirror) {
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  :deep(.ProseMirror h1) {
+    font-size: 28px;
+    margin: 1.2em 0 0.4em;
+  }
+
+  :deep(.ProseMirror h2) {
+    font-size: 23px;
+    margin: 1em 0 0.4em;
+  }
+
+  :deep(.ProseMirror h3) {
+    font-size: 20px;
+    margin: 0.9em 0 0.4em;
+  }
+
+  :deep(.ProseMirror h4) {
+    font-size: 17px;
+    margin: 0.7em 0 0.4em;
+  }
+}
+
+/* 中等手机 */
+@media (max-width: 640px) {
+  .editor-content {
+    padding: 0 12px 100px;
+    min-height: 350px;
+  }
+
+  .comment-toggle-btn {
+    bottom: 16px;
+    right: 10px;
+    width: 42px;
+    height: 42px;
+  }
+
+  .comment-count {
+    min-width: 17px;
+    height: 17px;
+    font-size: 10px;
+    border-radius: 8.5px;
+  }
+
+  .comment-preview-popup {
+    width: 240px;
+  }
+
+  .comment-preview-content {
+    height: 90px;
+  }
+
+  .comment-preview-nav {
+    width: 24px;
+    height: 24px;
+  }
+
+  .comment-preview-nav--prev {
+    left: -30px;
+  }
+
+  .comment-preview-nav--next {
+    right: -30px;
+  }
+
+  .comment-preview-card {
+    padding: 10px 34px 24px 12px;
+  }
+
+  .comment-preview-card--single {
+    padding: 10px 12px 12px 12px;
+  }
+
+  .comment-preview-card-author {
+    font-size: 11px;
+    margin-bottom: 5px;
+  }
+
+  .comment-preview-card-content {
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .comment-preview-pagination {
+    font-size: 9px;
+    bottom: 5px;
+    right: 8px;
+  }
+
+  .comment-preview-tooltip {
+    max-width: 220px;
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+
+  :deep(.ProseMirror) {
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  :deep(.ProseMirror h1) {
+    font-size: 26px;
+    margin: 1em 0 0.4em;
+  }
+
+  :deep(.ProseMirror h2) {
+    font-size: 21px;
+    margin: 0.9em 0 0.4em;
+  }
+
+  :deep(.ProseMirror h3) {
+    font-size: 18px;
+    margin: 0.8em 0 0.4em;
+  }
+
+  :deep(.ProseMirror h4) {
+    font-size: 16px;
+    margin: 0.7em 0 0.4em;
+  }
+
+  :deep(.ProseMirror ul),
+  :deep(.ProseMirror ol) {
+    padding-left: 1.2em;
+  }
+
+  :deep(.ProseMirror blockquote) {
+    padding-left: 1.2em;
+    margin: 1.2em 0;
+  }
+
+  :deep(.ProseMirror pre) {
+    padding: 1em 1.2em;
+    font-size: 13px;
+  }
+
+  :deep(.ProseMirror table) {
+    font-size: 13px;
+  }
+
+  :deep(.ProseMirror table td),
+  :deep(.ProseMirror table th) {
+    padding: 6px 8px;
+  }
+}
+
+/* 小屏手机 */
+@media (max-width: 480px) {
+  .editor-content {
+    padding: 0 10px 100px;
+    min-height: 300px;
+  }
+
+  .comment-toggle-btn {
+    bottom: 14px;
+    right: 8px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .comment-toggle-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .comment-count {
+    min-width: 16px;
+    height: 16px;
+    font-size: 9px;
+    border-radius: 8px;
+    padding: 0 4px;
+  }
+
+  .comment-preview-popup {
+    width: 220px;
+  }
+
+  .comment-preview-content {
+    height: 80px;
+  }
+
+  .comment-preview-nav {
+    width: 22px;
+    height: 22px;
+  }
+
+  .comment-preview-nav--prev {
+    left: -28px;
+  }
+
+  .comment-preview-nav--next {
+    right: -28px;
+  }
+
+  .comment-preview-card {
+    padding: 8px 30px 20px 10px;
+  }
+
+  .comment-preview-card--single {
+    padding: 8px 10px 10px 10px;
+  }
+
+  .comment-preview-card-author {
+    font-size: 10px;
+    margin-bottom: 4px;
+  }
+
+  .comment-preview-card-content {
+    font-size: 10px;
+    line-height: 1.4;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .comment-preview-pagination {
+    font-size: 8px;
+    bottom: 4px;
+    right: 6px;
+  }
+
+  .comment-preview-tooltip {
+    max-width: 200px;
+    padding: 4px 6px;
+    font-size: 10px;
+  }
+
+  :deep(.ProseMirror) {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  :deep(.ProseMirror p) {
+    margin: 0.8em 0;
+  }
+
+  :deep(.ProseMirror h1) {
+    font-size: 24px;
+    margin: 0.9em 0 0.3em;
+  }
+
+  :deep(.ProseMirror h2) {
+    font-size: 20px;
+    margin: 0.8em 0 0.3em;
+  }
+
+  :deep(.ProseMirror h3) {
+    font-size: 17px;
+    margin: 0.7em 0 0.3em;
+  }
+
+  :deep(.ProseMirror h4) {
+    font-size: 15px;
+    margin: 0.6em 0 0.3em;
+  }
+
+  :deep(.ProseMirror ul),
+  :deep(.ProseMirror ol) {
+    padding-left: 1em;
+    margin: 0.6em 0;
+  }
+
+  :deep(.ProseMirror blockquote) {
+    padding-left: 1em;
+    margin: 1em 0;
+    border-left: 2px solid rgba(0, 0, 0, 0.1);
+  }
+
+  :deep(.ProseMirror code) {
+    padding: 2px 4px;
+    font-size: 0.85em;
+  }
+
+  :deep(.ProseMirror pre) {
+    padding: 0.8em 1em;
+    font-size: 12px;
+    margin: 1em 0;
+  }
+
+  :deep(.ProseMirror table) {
+    font-size: 12px;
+  }
+
+  :deep(.ProseMirror table td),
+  :deep(.ProseMirror table th) {
+    padding: 5px 6px;
+  }
+
+  :deep(.ProseMirror img) {
+    margin: 0.8em 0;
+  }
 }
 </style>
 

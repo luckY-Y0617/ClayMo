@@ -475,5 +475,279 @@ const setMode = (mode: 'write' | 'preview') => {
   color: #666;
   font-weight: 500;
 }
+
+/* ======== 响应式设计 ======== */
+
+/* 平板和手机 */
+@media (max-width: 768px) {
+  .top-bar {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .top-bar-left {
+    flex: 1;
+    min-width: 100%;
+    margin-right: 0;
+    gap: 6px;
+  }
+
+  .title-input {
+    font-size: 20px;
+    padding: 6px 0;
+  }
+
+  .meta-row {
+    gap: 12px;
+  }
+
+  .last-edit {
+    font-size: 11px;
+  }
+
+  .top-bar-right {
+    width: 100%;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  /* 模式切换 */
+  .mode-switch {
+    padding: 2px;
+    border-radius: 6px;
+  }
+
+  .mode-pill {
+    padding: 5px 12px;
+    font-size: 13px;
+    border-radius: 5px;
+  }
+
+  /* 保存状态 */
+  .save-status {
+    font-size: 12px;
+    gap: 6px;
+  }
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+  }
+
+  .status-text {
+    min-width: 50px;
+  }
+
+  /* 按钮组 */
+  .custom-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+    gap: 4px;
+  }
+
+  .btn-icon {
+    font-size: 13px;
+  }
+
+  .btn-text {
+    font-size: 12px;
+  }
+
+  .version-history-btn,
+  .save-version-btn {
+    margin-right: 4px;
+  }
+
+  /* 隐藏版本历史按钮文字，只显示图标 */
+  .version-history-btn .btn-text {
+    display: none;
+  }
+
+  .action-group {
+    gap: 2px;
+    padding: 2px;
+    border-radius: 6px;
+  }
+
+  .icon-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+  }
+
+  .readonly-badge {
+    padding: 5px 10px;
+    border-radius: 5px;
+  }
+
+  .readonly-badge .badge-text {
+    font-size: 12px;
+  }
+}
+
+/* 中等手机 */
+@media (max-width: 640px) {
+  .top-bar {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .top-bar-left {
+    gap: 4px;
+  }
+
+  .title-input {
+    font-size: 18px;
+    padding: 4px 0;
+  }
+
+  .meta-row {
+    gap: 10px;
+    min-height: 20px;
+  }
+
+  .last-edit {
+    font-size: 10px;
+  }
+
+  .top-bar-right {
+    gap: 10px;
+  }
+
+  .mode-switch {
+    padding: 2px;
+  }
+
+  .mode-pill {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+
+  .save-status {
+    font-size: 11px;
+    gap: 5px;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+  }
+
+  .custom-btn {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+
+  .btn-icon {
+    font-size: 12px;
+  }
+
+  .btn-text {
+    font-size: 11px;
+  }
+
+  /* 进一步隐藏保存版本按钮的文字 */
+  .save-version-btn .btn-text {
+    display: none;
+  }
+
+  .icon-btn {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+/* 小屏手机 */
+@media (max-width: 480px) {
+  .top-bar {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .top-bar-left {
+    gap: 4px;
+  }
+
+  .title-input {
+    font-size: 16px;
+    padding: 4px 0;
+  }
+
+  .meta-row {
+    gap: 8px;
+    min-height: 18px;
+  }
+
+  .last-edit {
+    font-size: 9px;
+  }
+
+  .top-bar-right {
+    gap: 8px;
+  }
+
+  .mode-switch {
+    padding: 2px;
+  }
+
+  .mode-pill {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .save-status {
+    font-size: 10px;
+    gap: 4px;
+  }
+
+  .status-dot {
+    width: 5px;
+    height: 5px;
+  }
+
+  .status-text {
+    min-width: 40px;
+  }
+
+  .custom-btn {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+
+  .btn-icon {
+    font-size: 11px;
+  }
+
+  .version-history-btn,
+  .save-version-btn {
+    margin-right: 2px;
+  }
+
+  .action-group {
+    gap: 2px;
+    padding: 2px;
+  }
+
+  .icon-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  /* 在极小屏幕上隐藏"导出"按钮，保留分享和更多 */
+  .action-group .icon-btn:nth-child(2) {
+    display: none;
+  }
+
+  .readonly-badge {
+    padding: 4px 8px;
+  }
+
+  .readonly-badge .badge-text {
+    font-size: 11px;
+  }
+}
 </style>
 
