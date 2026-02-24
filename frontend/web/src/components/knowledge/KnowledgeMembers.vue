@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { KbMember, KbMemberRole } from '@/api'
 
-// 格式化日期
 const formatDate = (d?: string) => {
   if (!d) return '-'
   try {
