@@ -155,7 +155,6 @@ import {
   ImageBlock,
   FileBlock,
   TrailingParagraph,
-  GapCursorFix,
 } from '@/editor/extensions'
 
 // 组件
@@ -288,13 +287,7 @@ const editor = useEditor({
     BlockId,
     Heading.configure({ levels: [1, 2, 3, 4, 5, 6] }),
     Underline,
-    CodeBlockLowlight.configure({
-      lowlight,
-      defaultLanguage: 'plaintext',
-      HTMLAttributes: {
-        class: 'code-block',
-      },
-    }),
+    CodeBlockLowlight.configure({ lowlight, defaultLanguage: 'plaintext' }),
     TaskList,
     TaskItem,
     Link.configure({ openOnClick: false }),
@@ -322,7 +315,6 @@ const editor = useEditor({
     }),
     CommentMark,
     TrailingParagraph,
-    GapCursorFix,
   ],
   editorProps: {
     attributes: { class: 'prose prose-sm max-w-none focus:outline-none' },
@@ -793,7 +785,7 @@ defineExpose({
   flex: 1;
   max-width: 900px;
   margin: 0 auto;
-  padding: 0px 20px 300px;
+  padding: 0px 20px 80px;
   min-height: 500px;
   user-select: text;
   -webkit-user-select: text;
