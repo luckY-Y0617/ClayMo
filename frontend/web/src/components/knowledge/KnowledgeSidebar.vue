@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { Plus, Check, Grid, User, Setting, ArrowRight, CircleCheck, Loading } from '@element-plus/icons-vue'
 
 const formatNumber = (num: number): string => {
   if (num >= 1000) {
@@ -75,9 +76,7 @@ const handleSelectBase = (baseId: string) => {
           @click="emit('create-base')" 
           title="创建知识库"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
+          <el-icon :size="14"><Plus /></el-icon>
         </button>
       </div>
 
@@ -115,9 +114,7 @@ const handleSelectBase = (baseId: string) => {
             
             <!-- 选中标识 -->
             <div v-if="base.id === currentBaseId" class="ks-sidebar__item-check">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
+              <el-icon :size="14"><Check /></el-icon>
             </div>
           </div>
 

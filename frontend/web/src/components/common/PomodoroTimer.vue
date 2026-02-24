@@ -18,20 +18,10 @@
           title="取消"
           :disabled="loading"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
+          <el-icon :size="14"><Close /></el-icon>
         </button>
         <button class="pomodoro-action-btn settings-btn" @click="$emit('openSettings')" title="设置">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="2" />
-            <path
-              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.08a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.08a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"
-              stroke="currentColor"
-              stroke-width="2"
-            />
-          </svg>
+          <el-icon :size="14"><Setting /></el-icon>
         </button>
       </div>
     </div>
@@ -57,14 +47,9 @@
         :disabled="loading"
       >
         <!-- 开始图标 -->
-        <svg v-if="!hasActiveSession || isPaused" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <polygon points="5 3 19 12 5 21 5 3" />
-        </svg>
+        <el-icon v-if="!hasActiveSession || isPaused" :size="16"><VideoPlay /></el-icon>
         <!-- 暂停图标 -->
-        <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <rect x="6" y="4" width="4" height="16" />
-          <rect x="14" y="4" width="4" height="16" />
-        </svg>
+        <el-icon v-else :size="16"><VideoPause /></el-icon>
         {{ mainButtonText }}
       </button>
 
@@ -76,9 +61,7 @@
         :disabled="loading"
         title="完成"
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="20 6 9 17 4 12" />
-        </svg>
+        <el-icon :size="14"><Check /></el-icon>
       </button>
     </div>
 
@@ -109,6 +92,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { Close, Setting, VideoPlay, VideoPause, Check } from '@element-plus/icons-vue'
 import { useTeamStore } from '@/stores/team'
 import { focusApi, type FocusSessionDto, type FocusTodayStatsDto } from '@/api/modules/workspace'
 

@@ -4,9 +4,7 @@
     <template #header>
       <h3 class="modal-title">重命名文档</h3>
       <button class="modal-close" @click="handleClose">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
+        <el-icon :size="16"><Close /></el-icon>
       </button>
     </template>
 
@@ -55,11 +53,7 @@
         @click="handleSubmit"
       >
         <span v-if="submitting" class="btn-loading">
-          <svg class="spinner" width="14" height="14" viewBox="0 0 14 14">
-            <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="31.416" stroke-dashoffset="31.416">
-              <animate attributeName="stroke-dashoffset" values="31.416;0;31.416" dur="1s" repeatCount="indefinite"/>
-            </circle>
-          </svg>
+          <el-icon class="is-loading" :size="14"><Loading /></el-icon>
         </span>
         <span v-else>保存</span>
       </button>
@@ -69,6 +63,7 @@
 
 <script setup lang="ts">
 import { reactive, ref, watch } from 'vue'
+import { Close, Loading } from '@element-plus/icons-vue'
 import BaseModal from './BaseModal.vue'
 
 interface Props {

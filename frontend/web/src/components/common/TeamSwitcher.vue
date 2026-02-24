@@ -2,37 +2,15 @@
   <div class="team-switcher" ref="switcherRef">
     <button class="switcher-trigger" :class="{ 'is-open': isOpen }" @click="toggleDropdown">
       <div class="trigger-icon">
-        <svg v-if="!isTeamMode" width="18" height="18" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2" />
-          <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" stroke="currentColor" stroke-width="2" />
-        </svg>
-        <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" />
-          <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" />
-          <path
-            d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"
-            stroke="currentColor"
-            stroke-width="2"
-          />
-        </svg>
+        <el-icon v-if="!isTeamMode" :size="18"><User /></el-icon>
+        <el-icon v-else :size="18"><UserFilled /></el-icon>
       </div>
       <span class="trigger-text">{{ currentLabel }}</span>
-      <svg
+      <el-icon
         class="trigger-arrow"
         :class="{ 'is-rotated': isOpen }"
-        width="12"
-        height="12"
-        viewBox="0 0 24 24"
-        fill="none"
-      >
-        <path
-          d="M6 9l6 6 6-6"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
+        :size="12"
+      ><ArrowDown /></el-icon>
     </button>
 
     <Transition name="dropdown">
@@ -130,17 +108,7 @@
 
         <!-- 加载中 -->
         <div v-if="!loaded" class="loading-teams">
-          <svg class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <circle
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              stroke-width="4"
-              stroke-opacity="0.25"
-            />
-            <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-          </svg>
+          <el-icon class="is-loading" :size="16"><Loading /></el-icon>
           <span>加载中...</span>
         </div>
       </div>
@@ -150,17 +118,7 @@
     <Transition name="switching">
       <div v-if="isSwitching" class="switching-overlay">
         <div class="switching-content">
-          <svg class="switching-spinner" width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <circle
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              stroke-width="3"
-              stroke-opacity="0.25"
-            />
-            <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-          </svg>
+          <el-icon class="is-loading" :size="24"><Loading /></el-icon>
           <span>切换中...</span>
         </div>
       </div>
@@ -170,6 +128,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { User, UserFilled, ArrowDown, Loading } from '@element-plus/icons-vue'
 import { useTeamStore, TeamMemberRole, type TeamInfo } from '@/stores/team'
 import { storeToRefs } from 'pinia'
 

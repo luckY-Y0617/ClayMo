@@ -57,6 +57,7 @@
                   @open-document="handleOpenDocument"
                   @insert-document-card="handleInsertDocumentCard"
                   @add-comment="handleSelectionComment"
+                  @add-comment-from-toolbar="handleAddComment"
                   @comment-click="handleCommentClick"
                   @comment-hover="handleCommentHover"
                   @open-comment-drawer="handleOpenCommentDrawer"

@@ -42,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive, watch, onMounted, onBeforeUnmount, provide, nextTick, type CSSProperties } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, provide, nextTick, type CSSProperties } from 'vue'
 import { TextSelection } from 'prosemirror-state'
 import type { Editor } from '@tiptap/vue-3'
 
@@ -67,6 +67,7 @@ interface Props {
   suspended?: boolean
   stickyTop?: number
   gap?: number
+  autoShowComment?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -75,6 +76,7 @@ const props = withDefaults(defineProps<Props>(), {
   suspended: false,
   stickyTop: 88,
   gap: 8,
+  autoShowComment: false,
 })
 
 const emit = defineEmits<{
@@ -486,7 +488,7 @@ const handleMouseUp = () => {
     const ed = editor.value
     if (!ed || ed.isDestroyed) return
     const sel = ed.state.selection
-    if (sel.from !== sel.to) {
+    if (sel.from !== sel.to && props.autoShowComment) {
       shouldShowTextBubble.value = true
       scheduleUpdatePosition()
     }

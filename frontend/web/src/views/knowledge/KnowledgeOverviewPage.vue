@@ -32,10 +32,7 @@
           :class="{ active: viewMode === 'docs' }"
           @click="switchMode('docs')"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+          <el-icon :size="16"><Document /></el-icon>
           <span>文档</span>
         </button>
         <button
@@ -43,20 +40,14 @@
           :class="{ active: viewMode === 'manage' }"
           @click="switchMode('manage')"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="2"/>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke="currentColor" stroke-width="2"/>
-          </svg>
+          <el-icon :size="16"><Setting /></el-icon>
           <span>管理</span>
         </button>
       </div>
 
       <div class="kb-header-right">
         <div class="kb-search-box">
-          <svg class="kb-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" />
-            <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" />
-          </svg>
+          <el-icon class="kb-search-icon" :size="16"><Search /></el-icon>
           <input
             v-model="searchKeyword"
             type="text"
@@ -132,14 +123,7 @@
                 class="kb-add-doc-btn"
                 @click="handleCreateDoc"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M12 5v14M5 12h14"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  />
-                </svg>
+                <el-icon :size="14"><Plus /></el-icon>
                 新建文档
               </button>
             </div>
@@ -152,14 +136,7 @@
               <p v-if="canCreateDoc">点击「新建文档」开始创建</p>
               <p v-else>暂无文档</p>
               <button v-if="canCreateDoc" class="kb-create-doc-btn" @click="handleCreateDoc">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M12 5v14M5 12h14"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  />
-                </svg>
+                <el-icon :size="16"><Plus /></el-icon>
                 新建文档
               </button>
             </div>
@@ -325,9 +302,7 @@
                     @click="toggleTeamMemberSelect(member)"
                   >
                     <div class="kb-member-checkbox">
-                      <svg v-if="isTeamMemberSelected(member)" width="14" height="14" viewBox="0 0 24 24" fill="none">
-                        <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                      </svg>
+                      <el-icon v-if="isTeamMemberSelected(member)" :size="14"><Check /></el-icon>
                     </div>
                     <div class="kb-member-avatar small">{{ (member.username || 'U')[0].toUpperCase() }}</div>
                     <div class="kb-member-info">
@@ -350,9 +325,7 @@
                       <option value="Editor">编辑者 (Editor)</option>
                       <option value="Viewer">查看者 (Viewer)</option>
                     </select>
-                    <svg class="kb-select-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none">
-                      <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                    <el-icon class="kb-select-arrow" :size="12"><ArrowDown /></el-icon>
                   </div>
                 </div>
               </template>
@@ -377,9 +350,7 @@
                       <option value="Editor">编辑者 (Editor)</option>
                       <option value="Viewer">查看者 (Viewer)</option>
                     </select>
-                    <svg class="kb-select-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none">
-                      <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                    <el-icon class="kb-select-arrow" :size="12"><ArrowDown /></el-icon>
                   </div>
                 </div>
               </template>
@@ -438,9 +409,7 @@
                   >
                     <div class="kb-role-card-header">
                       <span class="kb-role-badge" :class="getRoleClass(role)">{{ getRoleLabel(role) }}</span>
-                      <svg v-if="selectedRole === role" class="kb-role-check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
-                        <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                      </svg>
+                      <el-icon v-if="selectedRole === role" class="kb-role-check-icon" :size="18"><Check /></el-icon>
                     </div>
                     <div class="kb-role-card-desc">{{ getRoleDescription(role) }}</div>
                   </div>
@@ -469,6 +438,7 @@
 import { computed, ref, watch, onMounted, defineAsyncComponent } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Document, Setting, Search, Plus, Check, ArrowDown } from '@element-plus/icons-vue'
 import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 

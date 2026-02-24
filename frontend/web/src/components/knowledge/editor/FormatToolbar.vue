@@ -143,6 +143,22 @@
         <el-icon><Document /></el-icon>
       </button>
     </div>
+
+    <!-- 评论按钮 - 放在工具栏右侧，更明显 -->
+    <div class="toolbar-spacer"></div>
+    <div class="toolbar-group comment-group">
+      <button
+        class="tool-btn comment-btn"
+        :class="{ 'comment-btn--active': hasSelection }"
+        @mousedown.prevent="handleAddComment"
+        title="添加评论"
+      >
+        <svg class="comment-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span class="comment-text">评论</span>
+      </button>
+    </div>
   </div>
 </template>
 
@@ -176,12 +192,45 @@ interface HeadingOption {
 }
 
 // ========================================
+// Props 和 Emits
+// ========================================
+
+interface Props {
+  canCreateComment?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  canCreateComment: true,
+})
+
+const emit = defineEmits<{
+  'add-comment': []
+}>()
+
+// ========================================
 // 注入依赖
 // ========================================
 
 const editorSession = inject<EditorSession>('editorSession')
 const baseId = inject<{ value: string }>('baseId')
 const editor = computed(() => editorSession?.editor.value)
+
+// 是否有选中文本
+const hasSelection = computed(() => {
+  const ed = editor.value
+  if (!ed) return false
+  const { from, to } = ed.state.selection
+  return from !== to
+})
+
+// 添加评论
+const handleAddComment = () => {
+  if (!hasSelection.value) {
+    ElMessage.warning('请先选中文字再添加评论')
+    return
+  }
+  emit('add-comment')
+}
 
 // ========================================
 // 文件上传
@@ -491,6 +540,49 @@ const onFileChange = async (event: Event) => {
 .heading-option.active {
   background: rgba(0, 0, 0, 0.08);
   color: #1a1a1a;
+  font-weight: 500;
+}
+
+.toolbar-spacer {
+  flex: 1;
+}
+
+.comment-group {
+  margin-left: auto;
+}
+
+.comment-btn {
+  background: #000 !important;
+  border: 1px solid #000 !important;
+  padding: 0 14px !important;
+  height: 32px !important;
+  border-radius: 6px !important;
+  gap: 6px;
+  color: #fff !important;
+}
+
+.comment-btn:hover {
+  background: #333 !important;
+  border-color: #333 !important;
+}
+
+.comment-btn--active {
+  background: #000 !important;
+  color: #fff !important;
+  border-color: #000 !important;
+}
+
+.comment-btn--active:hover {
+  background: #333 !important;
+  border-color: #333 !important;
+}
+
+.comment-icon {
+  flex-shrink: 0;
+}
+
+.comment-text {
+  font-size: 13px;
   font-weight: 500;
 }
 

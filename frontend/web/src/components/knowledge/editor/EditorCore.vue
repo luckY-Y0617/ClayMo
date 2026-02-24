@@ -1,6 +1,10 @@
 <template>
   <div class="editor-container" :class="{ 'is-previewing': isPreviewing }">
-    <FormatToolbar v-if="editor && !isPreviewing" />
+    <FormatToolbar 
+      v-if="editor && !isPreviewing" 
+      :can-create-comment="canCreateComment"
+      @add-comment="handleToolbarAddComment"
+    />
 
     <!-- Bubble 菜单入口 -->
     <BubbleHost
@@ -9,11 +13,21 @@
       :is-previewing="isPreviewing"
       :can-create-comment="canCreateComment"
       :suspended="commentMenuVisible"
+      :auto-show-comment="autoShowComment"
       @comment-submit="handleSelectionComment"
     />
 
     <div class="editor-wrapper">
       <editor-content :editor="editor" class="editor-content" />
+
+      <!-- 选中文本评论弹窗 - 在editor内部右侧 -->
+      <SelectionCommentPopup
+        v-if="editor && !isPreviewing && canCreateComment"
+        :editor="editor"
+        v-model:visible="selectionCommentVisible"
+        @submit="handleSelectionCommentSubmit"
+        @close="handleSelectionCommentClose"
+      />
 
       <!-- 评论按钮 -->
       <button
@@ -110,7 +124,9 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch, watchEffect, computed, inject, nextTick, type Ref } from 'vue'
 import { EditorContent, useEditor, type Editor } from '@tiptap/vue-3'
+import { ElMessage } from 'element-plus'
 import { StarterKit } from '@tiptap/starter-kit'
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import { Heading } from '@tiptap/extension-heading'
 import { Underline } from '@tiptap/extension-underline'
 import { TaskList } from '@tiptap/extension-task-list'
@@ -129,7 +145,7 @@ import { debounce } from 'lodash-es'
 
 // 自定义扩展
 import {
-  CustomCodeBlock,
+  lowlight,
   SlashCommand,
   InlineDocumentReference,
   CardDocumentReference,
@@ -145,8 +161,8 @@ import {
 import FormatToolbar from './FormatToolbar.vue'
 import SlashCommandList from './SlashCommandList.vue'
 import DocumentMentionList from './DocumentMentionList.vue'
-import CodeBlockView from './CodeBlockView.vue'
 import BubbleHost from '@/editor/menus/bubble/BubbleHost.vue'
+import SelectionCommentPopup from './SelectionCommentPopup.vue'
 
 // Store
 import { useKbWorkspaceStore } from '@/stores/kbWorkspace'
@@ -189,6 +205,7 @@ interface Props {
   isPreviewing?: boolean
   canViewComment?: boolean
   canCreateComment?: boolean
+  autoShowComment?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -196,6 +213,7 @@ const props = withDefaults(defineProps<Props>(), {
   isPreviewing: false,
   canViewComment: true,
   canCreateComment: true,
+  autoShowComment: false,
 })
 
 // Emits
@@ -208,6 +226,7 @@ const emit = defineEmits<{
   'comment-hover': [payload: { commentId: string; preview: CommentPreviewData }]
   'open-comment-drawer': [commentId?: string]
   'editor-ready': [editor: Editor]
+  'add-comment-from-toolbar': []
 }>()
 
 // DI
@@ -225,6 +244,9 @@ const commentMenuVisible = ref(false)
 const commentMenuPosition = ref<Position>({ x: 0, y: 0 })
 const commentMenuItems = ref<CommentMenuItem[]>([])
 const currentCommentIndex = ref(0)
+
+// 选中文本评论弹窗状态
+const selectionCommentVisible = ref(false)
 
 // 计算属性
 const totalCommentCount = computed(() => {
@@ -265,7 +287,7 @@ const editor = useEditor({
     BlockId,
     Heading.configure({ levels: [1, 2, 3, 4, 5, 6] }),
     Underline,
-    CustomCodeBlock,
+    CodeBlockLowlight.configure({ lowlight, defaultLanguage: 'plaintext' }),
     TaskList,
     TaskItem,
     Link.configure({ openOnClick: false }),
@@ -431,12 +453,43 @@ const resetSelectionToStart = () => {
 }
 
 // BubbleHost 评论提交 → 冒泡给上层
-const handleSelectionComment = (payload: { content: string; parentId: string | null; position: unknown | null }) => {
+const handleSelectionComment = (payload: unknown) => {
+  const p = payload as { content: string; parentId: string | null; position: unknown | null }
   emit('add-comment', {
-    content: payload.content,
-    parentId: payload.parentId || null,
-    position: payload.position || null,
+    content: p.content,
+    parentId: p.parentId || null,
+    position: p.position || null,
   })
+}
+
+// 工具栏评论按钮点击
+const handleToolbarAddComment = () => {
+  const ed = editor.value
+  if (!ed) return
+
+  const { from, to } = ed.state.selection
+  if (from === to) {
+    ElMessage.warning('请先选中文字再添加评论')
+    return
+  }
+
+  // 打开右侧评论弹窗
+  selectionCommentVisible.value = true
+}
+
+// 选中文本评论弹窗提交
+const handleSelectionCommentSubmit = (payload: unknown) => {
+  const p = payload as { content: string; parentId: string | null; position: unknown | null }
+  emit('add-comment', {
+    content: p.content,
+    parentId: p.parentId || null,
+    position: p.position || null,
+  })
+}
+
+// 选中文本评论弹窗关闭
+const handleSelectionCommentClose = () => {
+  selectionCommentVisible.value = false
 }
 
 // Watchers
@@ -493,6 +546,25 @@ watch(
     }
   },
   { immediate: true }
+)
+
+// 监听工具栏添加评论事件
+watch(
+  () => editor.value?.state.selection,
+  () => {
+    // 选区变化时更新弹窗状态
+    if (selectionCommentVisible.value) {
+      const ed = editor.value
+      if (ed) {
+        const { from, to } = ed.state.selection
+        if (from === to) {
+          // 选区取消，关闭弹窗
+          selectionCommentVisible.value = false
+        }
+      }
+    }
+  },
+  { deep: true }
 )
 
 // 评论弹框事件
@@ -706,9 +778,11 @@ defineExpose({
   overflow-y: auto;
   background: #ffffff;
   position: relative;
+  display: flex;
 }
 
 .editor-content {
+  flex: 1;
   max-width: 900px;
   margin: 0 auto;
   padding: 0px 20px 80px;
@@ -730,6 +804,17 @@ defineExpose({
 
 :deep(.ProseMirror .comment-mark:hover) {
   background: rgba(0, 0, 0, 0.1);
+}
+
+/* 选中文本保持高亮显示 */
+:deep(.ProseMirror ::selection) {
+  background: rgba(229, 62, 62, 0.2) !important;
+  color: inherit !important;
+}
+
+:deep(.ProseMirror ::-moz-selection) {
+  background: rgba(229, 62, 62, 0.2) !important;
+  color: inherit !important;
 }
 
 /* TipTap 编辑器样式 */

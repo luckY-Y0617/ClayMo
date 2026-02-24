@@ -6,27 +6,19 @@
           <div class="panel-header">
             <h3 class="panel-title">版本历史</h3>
             <button class="panel-close" @click="handleClose">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-              </svg>
+              <el-icon :size="16"><Close /></el-icon>
             </button>
           </div>
 
           <div class="panel-content">
             <div v-if="loading" class="loading-state">
-              <svg class="spinner" width="24" height="24" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="62.83" stroke-dashoffset="62.83">
-                  <animate attributeName="stroke-dashoffset" values="62.83;0;62.83" dur="1.5s" repeatCount="indefinite"/>
-                </circle>
-              </svg>
+              <el-icon class="is-loading" :size="24"><Loading /></el-icon>
               <span>加载中...</span>
             </div>
 
             <template v-else>
               <div v-if="versions.length === 0" class="empty-state">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#CCCCCC" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <el-icon :size="48" color="#CCCCCC"><Clock /></el-icon>
                 <p>暂无版本记录</p>
               </div>
 
@@ -98,6 +90,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, inject, type Ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Close, Loading, Clock } from '@element-plus/icons-vue'
 import { format } from 'date-fns'
 import { kbApi } from '@/api'
 import type { EditorDocument } from '@/types/editor'

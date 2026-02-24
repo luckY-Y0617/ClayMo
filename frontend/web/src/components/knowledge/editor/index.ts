@@ -4,7 +4,6 @@
 
 // TipTap 扩展依赖的 Vue 组件
 export { default as SlashCommandList } from './SlashCommandList.vue'
-export { default as CodeBlockView } from './CodeBlockView.vue'
 export { default as DocumentMentionList } from './DocumentMentionList.vue'
 
 // 工具栏

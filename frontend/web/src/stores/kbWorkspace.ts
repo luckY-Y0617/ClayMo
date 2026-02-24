@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { kbApi } from '@/api'
 import type { KnowledgeBase, KbContext, Tag } from '@/api/modules/knowledge'
-import { KbMemberRole } from '@/api/modules/knowledge'
 import { usePermissionStore } from '@/stores/permission'
 
 /**
@@ -293,7 +292,7 @@ export const useKbWorkspaceStore = defineStore('kbWorkspace', {
       }
 
       // 如果已有进行中的请求，返回该 Promise（并发去重）
-      if (this.inflightByKbId[kbId]) {
+      if (kbId in this.inflightByKbId) {
         return this.inflightByKbId[kbId]
       }
 
@@ -303,7 +302,9 @@ export const useKbWorkspaceStore = defineStore('kbWorkspace', {
           this.errorByKbId[kbId] = null
 
           // 调用 API 获取原始数据
-          const rawContext = await kbApi.kb.getContext(kbId)
+          // 注意：由于 http 客户端配置了 unwrapData: true，响应拦截器会返回 response.data
+          // 需要通过 unknown 中转来满足 TypeScript 类型检查
+          const rawContext = (await kbApi.kb.getContext(kbId)) as unknown as KbContext
 
           // 使用 mapper 规范化数据
           const normalized = normalizeKbContext(rawContext)

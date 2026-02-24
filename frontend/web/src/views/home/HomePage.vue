@@ -26,12 +26,7 @@
             <span class="trigger-time">{{ currentTime }}</span>
             <span class="trigger-date">{{ shortDateText }}</span>
           </div>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
+          <el-icon :size="16"><Calendar /></el-icon>
         </div>
       </div>
     </header>
@@ -43,10 +38,7 @@
           <div class="panel-header">
             <h3>{{ currentMonth }}</h3>
             <button class="panel-close" @click="toggleCalendarPanel">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
+              <el-icon :size="16"><Close /></el-icon>
             </button>
           </div>
           <div class="panel-calendar">
@@ -93,9 +85,7 @@
                   :class="{ completed: goal.isChecked }"
                 >
                   <span class="event-checkbox">
-                    <svg v-if="goal.isChecked" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
+                    <el-icon v-if="goal.isChecked" :size="10"><Check /></el-icon>
                   </span>
                   <span class="event-title">{{ goal.title }}</span>
                 </div>
@@ -137,10 +127,7 @@
 
     <!-- 悬浮账号按钮 -->
     <div class="account-fab" @click="toggleAccountMenu">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2" />
-        <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" stroke="currentColor" stroke-width="2" />
-      </svg>
+      <el-icon :size="20"><User /></el-icon>
       <div v-if="showAccountMenu" class="account-menu">
         <div class="menu-item" @click="viewProfile">个人信息</div>
         <div class="menu-item" @click="openSettings">设置</div>
@@ -156,6 +143,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { Calendar, Close, Check, User } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday } from 'date-fns'
 import { zhCN } from 'date-fns/locale'

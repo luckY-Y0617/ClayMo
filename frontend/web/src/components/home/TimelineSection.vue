@@ -18,10 +18,7 @@
     <!-- 加载状态（首次加载） -->
     <div v-if="timelineLoading && timelineEvents.length === 0" class="loading-state">
       <div class="loading-spinner">
-        <svg class="spinner" width="32" height="32" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-opacity="0.25" />
-          <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-        </svg>
+        <el-icon class="is-loading" :size="32"><Loading /></el-icon>
       </div>
       <p>正在加载时间线...</p>
     </div>
@@ -101,10 +98,7 @@
       <div v-if="hasMore" class="load-more">
         <button class="load-more-btn" :disabled="timelineLoading" @click="loadMoreEvents">
           <span v-if="timelineLoading" class="loading-text">
-            <svg class="spinner-small" width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-opacity="0.25" />
-              <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
+            <el-icon class="is-loading" :size="16"><Loading /></el-icon>
             加载中...
           </span>
           <span v-else>加载更多</span>
@@ -122,6 +116,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { Loading } from '@element-plus/icons-vue'
 import {
   groupActivitiesByDate,
   getModuleLabel as _getModuleLabel,

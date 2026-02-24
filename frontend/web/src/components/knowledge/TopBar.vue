@@ -95,12 +95,14 @@ import { zhCN } from 'date-fns/locale'
 import { kbApi } from '@/api'
 import { usePermissionStore } from '@/stores/permission'
 import type { EditorDocument, SaveStatus } from '@/types/editor'
+import type { Editor } from '@tiptap/vue-3'
 
 interface EditorSession {
   saveStatus: Ref<SaveStatus>
   currentDocument: Ref<EditorDocument | null>
   setCurrentDocument: (doc: EditorDocument) => void
   updateCurrentDocument: (updates: Partial<EditorDocument>) => void
+  editor: Ref<Editor | null>
 }
 
 interface Props {

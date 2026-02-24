@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Plus } from '@element-plus/icons-vue'
 import { KbMember, KbMemberRole } from '@/api'
 
 const formatDate = (d?: string) => {
@@ -67,9 +68,7 @@ const getRoleClass = (role: string | number) => {
         <p class="kb-content-subtitle">管理成员角色与权限</p>
       </div>
       <button v-if="canManageMembers" class="kb-action-btn primary" @click="emit('add-member')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
+        <el-icon :size="16"><Plus /></el-icon>
         添加成员
       </button>
     </div>

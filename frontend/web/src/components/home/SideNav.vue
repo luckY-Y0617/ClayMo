@@ -2,10 +2,7 @@
   <aside class="side-nav">
     <!-- 回到今天 -->
     <button v-if="showTodayBtn" class="nav-today-btn" @click="scrollToToday">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
-        <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-      </svg>
+      <el-icon :size="16"><Clock /></el-icon>
       <span>今天</span>
     </button>
 
@@ -60,6 +57,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { Clock } from '@element-plus/icons-vue'
 import PomodoroTimer from '@/components/common/PomodoroTimer.vue'
 import type { FocusSessionDto, FocusTodayStatsDto } from '@/api/modules/workspace'
 

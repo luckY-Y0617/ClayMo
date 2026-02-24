@@ -8,7 +8,6 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     BaseModal: typeof import('./../components/knowledge/modals/BaseModal.vue')['default']
-    CodeBlockView: typeof import('./../components/knowledge/editor/CodeBlockView.vue')['default']
     CommentPane: typeof import('./../components/knowledge/panels/CommentPane.vue')['default']
     CommentPanel: typeof import('./../components/knowledge/editor/CommentPanel.vue')['default']
     CreateBaseModal: typeof import('./../components/knowledge/modals/CreateBaseModal.vue')['default']
@@ -43,6 +42,7 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SaveVersionModal: typeof import('./../components/knowledge/modals/SaveVersionModal.vue')['default']
+    SelectionCommentPopup: typeof import('./../components/knowledge/editor/SelectionCommentPopup.vue')['default']
     ShareModal: typeof import('./../components/knowledge/modals/ShareModal.vue')['default']
     Sidebar: typeof import('./../components/knowledge/Sidebar.vue')['default']
     SideNav: typeof import('./../components/home/SideNav.vue')['default']
