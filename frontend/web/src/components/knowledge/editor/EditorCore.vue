@@ -288,7 +288,13 @@ const editor = useEditor({
     BlockId,
     Heading.configure({ levels: [1, 2, 3, 4, 5, 6] }),
     Underline,
-    CodeBlockLowlight.configure({ lowlight, defaultLanguage: 'plaintext' }),
+    CodeBlockLowlight.configure({
+      lowlight,
+      defaultLanguage: 'plaintext',
+      HTMLAttributes: {
+        class: 'code-block',
+      },
+    }),
     TaskList,
     TaskItem,
     Link.configure({ openOnClick: false }),

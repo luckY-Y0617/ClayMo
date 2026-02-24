@@ -15,6 +15,9 @@ import { pinia, useAuthStore, usePermissionStore, useTeamStore } from './stores'
 import 'element-plus/dist/index.css'
 import './styles/main.scss'
 
+// 代码高亮样式（用于编辑器代码块）
+// highlight.js 样式已内置在 main.scss 中
+
 // Element Plus 配置（用于 ConfigProvider）
 export const elementPlusConfig = {
   locale: zhCn,
