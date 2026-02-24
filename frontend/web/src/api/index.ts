@@ -9,7 +9,7 @@ export {
   weeklyFocusApi,
   weeklyCheckinApi,
 } from './modules/workspace'
-export { kbApi } from './modules/knowledge'
+export { kbApi, KbMemberRole, KbVisibility } from './modules/knowledge'
 export { fileApi } from './modules/file'
 
 // 类型导出

@@ -4,6 +4,7 @@ import { http, API } from '@/utils/http'
 
 export interface ActivityQueryParams {
   teamId?: string | null
+  userId?: string | null
   objectType?: string | null
   objectId?: string | null
   subjectType?: string | null
@@ -105,6 +106,7 @@ export const activityApi = {
     return http.get(`${API}/app/workspace/activity`, {
       params: {
         teamId: params.teamId || null,
+        userId: params.userId || null,
         objectType: params.objectType || null,
         objectId: params.objectId || null,
         subjectType: params.subjectType || null,

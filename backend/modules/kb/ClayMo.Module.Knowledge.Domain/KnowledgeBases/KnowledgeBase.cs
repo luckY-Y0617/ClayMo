@@ -97,5 +97,10 @@ public class KnowledgeBase : FullAuditedAggregateRoot<Guid>, IMultiTenant
     {
         OwnerId = ownerId;
     }
+
+    public void SetName(string name)
+    {
+        Name = name;
+    }
 }
 

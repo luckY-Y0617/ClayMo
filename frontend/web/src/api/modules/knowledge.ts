@@ -50,6 +50,7 @@ export interface KbListParams {
   sorting?: string | null
   skipCount?: number
   maxResultCount?: number
+  teamId?: string | null
 }
 
 /** 知识库创建参数 */
@@ -124,6 +125,8 @@ export interface DocumentRenameInput {
 /** 文档移动参数 */
 export interface DocumentMoveInput {
   parentId?: string | null
+  targetKnowledgeBaseId?: string
+  targetParentId?: string | null
 }
 
 /** 文档内容 */
@@ -250,6 +253,7 @@ export const kbApi = {
           sorting: null,
           skipCount: 0,
           maxResultCount: 20,
+          teamId: params.teamId || null,
           ...params,
         },
       })

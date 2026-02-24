@@ -30,9 +30,28 @@ public class ActivityAppService : ApplicationService, IActivityAppService
             ? null
             : Guid.Parse(input.TeamId);
 
+        // userId 用于个人空间查询
+        Guid? currentUserId = string.IsNullOrWhiteSpace(input.UserId)
+            ? null
+            : Guid.Parse(input.UserId);
+
         var query = await _repo.GetQueryableAsync();
 
-        query = query.Where(x => x.TeamId == currentTeamId);
+        // 团队空间：TeamId = teamId
+        if (currentTeamId.HasValue)
+        {
+            query = query.Where(x => x.TeamId == currentTeamId);
+        }
+        // 个人空间：TeamId = null 且 ActorUserId = userId
+        else if (currentUserId.HasValue)
+        {
+            query = query.Where(x => x.TeamId == null && x.ActorUserId == currentUserId.Value);
+        }
+        else
+        {
+            // 都没有传，返回空
+            return new List<ActivityDto>();
+        }
 
         if (!string.IsNullOrWhiteSpace(input.ObjectType))
         {

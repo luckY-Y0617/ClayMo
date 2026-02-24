@@ -329,7 +329,8 @@
 // ===== 右侧内容面板 =====
 .kb-content-panel {
   flex: 1;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding: 24px 32px;
   display: flex;
   flex-direction: column;

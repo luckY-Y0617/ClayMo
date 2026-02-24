@@ -101,3 +101,11 @@ export function getIconEmoji(key: string | undefined): string {
   return option?.emoji || '📚'
 }
 
+/**
+ * 根据 emoji 获取对应的 key（用于保存时转换）
+ */
+export function getIconKeyByEmoji(emoji: string | undefined): string {
+  if (!emoji) return DEFAULT_ICON_KEY
+  const option = KB_ICON_OPTIONS.find((opt) => opt.emoji === emoji)
+  return option?.key || DEFAULT_ICON_KEY
+}

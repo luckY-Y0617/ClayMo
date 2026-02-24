@@ -131,9 +131,11 @@ import {
 } from '@/utils/activity-mapper'
 import { activityApi, type ActivityDto } from '@/api'
 import { useTeamStore } from '@/stores/team'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const teamStore = useTeamStore()
+const authStore = useAuthStore()
 
 // Props & Emits
 const emit = defineEmits<{
@@ -207,11 +209,13 @@ const refreshWithDiff = async () => {
     // 保存当前已有的 ID
     const existingIds = new Set(timelineEvents.value.map((e) => e.id))
 
-    const response = await activityApi.getActivities({
-      teamId: teamStore.currentTeamId || null,
-      skipCount: 0,
-      maxResultCount: pageSize,
-    })
+    // 个人空间传userId，团队空间传teamId
+    const isPersonal = !teamStore.currentTeamId
+    const params = isPersonal
+      ? { userId: authStore.user?.id, skipCount: 0, maxResultCount: pageSize }
+      : { teamId: teamStore.currentTeamId || null, skipCount: 0, maxResultCount: pageSize }
+
+    const response = await activityApi.getActivities(params)
 
     const rawActivities: ActivityDto[] = Array.isArray(response)
       ? response
@@ -259,11 +263,13 @@ const loadTimelineEvents = async (loadMore = false) => {
   try {
     const skipCount = loadMore ? timelineEvents.value.length : 0
 
-    const response = await activityApi.getActivities({
-      teamId: teamStore.currentTeamId || null,
-      skipCount,
-      maxResultCount: pageSize,
-    })
+    // 个人空间传userId，团队空间传teamId
+    const isPersonal = !teamStore.currentTeamId
+    const params = isPersonal
+      ? { userId: authStore.user?.id, skipCount, maxResultCount: pageSize }
+      : { teamId: teamStore.currentTeamId || null, skipCount, maxResultCount: pageSize }
+
+    const response = await activityApi.getActivities(params)
 
     const rawActivities: ActivityDto[] = Array.isArray(response)
       ? response

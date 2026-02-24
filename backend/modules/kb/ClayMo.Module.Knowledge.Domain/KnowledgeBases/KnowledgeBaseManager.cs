@@ -56,7 +56,7 @@ public class KnowledgeBaseManager : DomainService
     {
         if (!name.IsNullOrWhiteSpace())
         {
-            kb.SetProperty(nameof(kb.Name), name);
+            kb.SetName(name);
         }
 
         kb.SetDescription(description);
@@ -65,8 +65,6 @@ public class KnowledgeBaseManager : DomainService
         {
             kb.SetVisibility(visibility.Value);
         }
-
-        await _kbRepository.UpdateAsync(kb, autoSave: true, cancellationToken);
     }
 
     public virtual async Task DeleteAsync(

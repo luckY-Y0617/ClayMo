@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using ClayMo.Framework.Authorization.AspNetCore;
 using ClayMo.Module.Knowledge.Domain.Shared.Authorization;
 using ClayMo.Module.Knowledge.Application.Contracts.KnowledgeBases;
