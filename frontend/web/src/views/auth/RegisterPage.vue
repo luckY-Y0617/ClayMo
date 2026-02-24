@@ -1,9 +1,4 @@
 <script setup lang="ts">
-/**
- * 注册页面
- * 
- * TODO: 从 app-frontend 迁移完整的注册逻辑
- */
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 

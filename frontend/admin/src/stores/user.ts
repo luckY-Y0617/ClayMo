@@ -14,35 +14,28 @@ export const useUserStore = defineStore(
 
     const hasPermission = (permission: string): boolean => {
       if (!currentUser.value) return false
-      // Safe check for permissions array
       if (!currentUser.value.permissions || !Array.isArray(currentUser.value.permissions)) {
         return false
       }
-      // Wildcard permission '*' means user has all permissions
       if (currentUser.value.permissions.includes('*')) {
         return true
       }
       return currentUser.value.permissions.includes(permission)
     }
 
-    // Check if user has any of the permissions
     const hasAnyPermission = (permissions: string[]): boolean => {
       return permissions.some((p) => hasPermission(p))
     }
 
-    // Check if user has all permissions
     const hasAllPermissions = (permissions: string[]): boolean => {
       return permissions.every((p) => hasPermission(p))
     }
 
-    // Set tenant ID
     const setTenantId = (id: string) => {
       tenantId.value = id
     }
 
-    // Login
     const login = async (username: string, password: string, selectedTenantId: string) => {
-      // Set tenant ID before login (empty string means Host mode)
       setTenantId(selectedTenantId)
       
       // Collect device info

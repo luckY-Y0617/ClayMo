@@ -1,6 +1,3 @@
-/**
- * 认证 Store
- */
 import { defineStore } from 'pinia'
 import { authApi, type LoginParams } from '@/api/modules/auth'
 import { usePermissionStore } from './permission'

@@ -26,6 +26,7 @@
           :key="doc.id"
           :node="doc"
           :selected-key="selectedKey"
+          :expanded-keys="expandedKeys"
           :kb-id="currentBaseId || ''"
           :can-create="canCreateDoc"
           :can-delete="canDeleteDoc"
@@ -57,7 +58,7 @@
               :key="heading.id"
               :heading="heading"
               :all-headings="headings"
-              :expanded-keys="expandedKeys"
+              :expanded-keys="outlineExpandedKeys"
               :active-id="activeHeadingId"
               :search-keyword="''"
               @toggle="handleToggle"
@@ -76,11 +77,21 @@
       :submitting="creating"
       @submit="handleCreateSubmit"
     />
+
+    <!-- 右键菜单 -->
+    <DocumentContextMenu
+      v-if="!props.readonly"
+      :model-value="contextMenu.visible"
+      :items="menuItems"
+      :position="{ x: contextMenu.x, y: contextMenu.y }"
+      @update:modelValue="contextMenu.visible = $event"
+      @select="handleMenuSelect"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onBeforeUnmount, ref, watch, inject, defineAsyncComponent, type Ref } from 'vue'
+import { computed, onMounted, onBeforeUnmount, ref, reactive, watch, inject, defineAsyncComponent, type Ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElButton, ElIcon } from 'element-plus'
 import { ArrowLeft } from '@element-plus/icons-vue'
@@ -91,6 +102,7 @@ import { useDocumentTreeStore } from '@/stores/documentTree'
 import { kbApi } from '@/api'
 
 import DocumentTreeNode from './DocumentTreeNode.vue'
+import DocumentContextMenu from './components/DocumentContextMenu.vue'
 import OutlineItem from './OutlineItem.vue'
 
 // 懒加载模态框
@@ -147,13 +159,14 @@ const currentBaseId = ref<string | null>(null)
 
 // 大纲相关
 const headings = ref<Heading[]>([])
-const expandedKeys = ref(new Set<string>())
+const outlineExpandedKeys = ref(new Set<string>())
 const activeHeadingId = ref<string | null>(null)
 
 const documents = computed<DocumentNode[]>(() => 
   documentTreeStore.getDocuments(currentBaseId.value) as DocumentNode[]
 )
 const selectedKey = computed(() => documentTreeStore.getSelectedKey(currentBaseId.value))
+const expandedKeys = computed(() => currentBaseId.value ? documentTreeStore.getExpandedKeys(currentBaseId.value) : [])
 const bases = computed(() => kbWorkspaceStore.bases)
 
 const currentBaseName = computed(() => {
@@ -165,6 +178,80 @@ const currentBaseName = computed(() => {
 const createModalVisible = ref(false)
 const createParentId = ref<string | null>(null)
 const creating = ref(false)
+
+// 右键菜单相关
+const contextMenu = reactive({
+  visible: false,
+  x: 0,
+  y: 0,
+  node: null as DocumentNode | null,
+})
+
+interface MenuItem {
+  key: string
+  label: string
+  shortcut?: string
+  danger?: boolean
+}
+
+const menuItems = computed((): MenuItem[] => {
+  const items: MenuItem[] = [
+    { key: 'open', label: '打开文档', shortcut: 'Enter' },
+  ]
+  
+  if (props.canCreateDoc) {
+    items.push({ key: 'create', label: '新建子文档', shortcut: 'Ctrl+Enter' })
+  }
+  
+  if (props.canMoveDoc) {
+    items.push({ key: 'move', label: '移动到...' })
+  }
+  
+  items.push({ key: 'rename', label: '重命名', shortcut: 'F2' })
+  
+  if (props.canDeleteDoc) {
+    items.push({ key: 'delete', label: '删除', shortcut: 'Delete', danger: true })
+  }
+  
+  return items
+})
+
+const openContextMenu = (event: MouseEvent, node: DocumentNode) => {
+  contextMenu.visible = true
+  contextMenu.x = event.pageX
+  contextMenu.y = event.pageY
+  contextMenu.node = node
+}
+
+const handleMenuSelect = (item: MenuItem) => {
+  if (!contextMenu.node) return
+  const node = contextMenu.node
+  switch (item.key) {
+    case 'open':
+      handleDocSelect(node.id)
+      break
+    case 'create':
+      openCreateModal({ parentId: node.id })
+      break
+    case 'rename':
+      openRenameModal({ id: node.id, title: node.title })
+      break
+    case 'delete':
+      openDeleteModal({
+        id: node.id,
+        title: node.title,
+        hasChildren: Array.isArray(node.children) && node.children.length > 0,
+      })
+      break
+    case 'move':
+      ElMessage.info('移动功能待完善')
+      break
+  }
+  contextMenu.visible = false
+}
+
+// 提供右键菜单函数给子组件
+provide('openContextMenu', openContextMenu)
 
 // 加载文档树
 const loadDocuments = async (baseId: string) => {
@@ -304,10 +391,10 @@ const topLevelHeadings = computed(() => {
 
 // 展开/折叠
 const handleToggle = (id: string) => {
-  if (expandedKeys.value.has(id)) {
-    expandedKeys.value.delete(id)
+  if (outlineExpandedKeys.value.has(id)) {
+    outlineExpandedKeys.value.delete(id)
   } else {
-    expandedKeys.value.add(id)
+    outlineExpandedKeys.value.add(id)
   }
 }
 

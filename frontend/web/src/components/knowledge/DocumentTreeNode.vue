@@ -5,6 +5,7 @@
       :class="{ active: node.id === selectedKey }"
       :style="{ paddingLeft: `${depth * 20 + 12}px` }"
       @click="handleSelect"
+      @contextmenu.stop.prevent="handleContextMenu"
     >
       <el-icon
         v-if="hasChildren"
@@ -43,7 +44,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import { ArrowRight, Document } from '@element-plus/icons-vue'
 import type { DocumentNode } from '@/api/modules/knowledge'
 import { useDocumentTreeStore } from '@/stores'
@@ -54,6 +55,9 @@ interface Props {
   expandedKeys?: string[]
   kbId?: string | null
   depth?: number
+  canCreate?: boolean
+  canDelete?: boolean
+  canMove?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -61,11 +65,20 @@ const props = withDefaults(defineProps<Props>(), {
   expandedKeys: () => [],
   kbId: null,
   depth: 0,
+  canCreate: true,
+  canDelete: true,
+  canMove: true,
 })
 
 const emit = defineEmits<{
   select: [docId: string]
+  create: [data: { parentId: string }]
+  rename: [data: { id: string; title: string }]
+  delete: [data: { id: string; title: string; hasChildren: boolean }]
 }>()
+
+// 注入右键菜单函数
+const openContextMenu = inject<((event: MouseEvent, node: DocumentNode) => void) | null>('openContextMenu', null)
 
 const documentTreeStore = useDocumentTreeStore()
 
@@ -85,6 +98,10 @@ const toggleExpand = () => {
   if (props.kbId) {
     documentTreeStore.toggleExpand(props.kbId, props.node.id)
   }
+}
+
+const handleContextMenu = (event: MouseEvent) => {
+  openContextMenu?.(event, props.node)
 }
 </script>
 

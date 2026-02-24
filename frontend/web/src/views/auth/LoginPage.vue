@@ -1,7 +1,4 @@
 <script setup lang="ts">
-/**
- * 登录页面
- */
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
