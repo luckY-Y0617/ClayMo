@@ -6,6 +6,7 @@
 export { BlockId, type BlockIdOptions } from './BlockId'
 export { CommentMark, type CommentMarkOptions, type CommentMarkAttributes } from './CommentMark'
 export { TrailingParagraph } from './TrailingParagraph'
+export { GapCursorFix } from './GapCursorFix'
 
 // 文档引用扩展
 export {

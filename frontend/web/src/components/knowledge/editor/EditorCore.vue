@@ -155,6 +155,7 @@ import {
   ImageBlock,
   FileBlock,
   TrailingParagraph,
+  GapCursorFix,
 } from '@/editor/extensions'
 
 // 组件
@@ -315,6 +316,7 @@ const editor = useEditor({
     }),
     CommentMark,
     TrailingParagraph,
+    GapCursorFix,
   ],
   editorProps: {
     attributes: { class: 'prose prose-sm max-w-none focus:outline-none' },
@@ -785,7 +787,7 @@ defineExpose({
   flex: 1;
   max-width: 900px;
   margin: 0 auto;
-  padding: 0px 20px 80px;
+  padding: 0px 20px 300px;
   min-height: 500px;
   user-select: text;
   -webkit-user-select: text;
