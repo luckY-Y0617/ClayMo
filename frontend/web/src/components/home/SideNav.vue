@@ -1,12 +1,10 @@
 <template>
   <aside class="side-nav">
-    <!-- 回到今天 -->
     <button v-if="showTodayBtn" class="nav-today-btn" @click="scrollToToday">
       <el-icon :size="16"><Clock /></el-icon>
       <span>今天</span>
     </button>
 
-    <!-- GitHub 信息卡片 -->
     <div class="module-card github-card">
       <div class="github-header">
         <svg class="github-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
