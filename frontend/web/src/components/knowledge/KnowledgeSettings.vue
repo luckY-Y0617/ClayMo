@@ -250,7 +250,6 @@ const handleSave = () => {
   gap: 20px;
 }
 
-/* 设置区块 */
 .settings-section {
   background: #fff;
   border: 1px solid #e2e8f0;
