@@ -464,7 +464,6 @@ const handleSave = () => {
   color: #64748b;
 }
 
-/* 权限开关 */
 .permission-item {
   display: flex;
   align-items: center;
