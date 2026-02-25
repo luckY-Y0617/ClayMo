@@ -80,6 +80,34 @@
       @submit="handleCreateSubmit"
     />
 
+    <!-- 重命名文档弹窗 -->
+    <RenameDocModal
+      v-model="renameModalVisible"
+      :original-title="renameDocTitle"
+      :submitting="renaming"
+      @submit="handleRenameSubmit"
+    />
+
+    <!-- 移动文档弹窗 -->
+    <MoveDocModal
+      v-model="moveModalVisible"
+      :doc-id="moveDocId"
+      :doc-title="moveDocTitle"
+      :current-kb-id="currentBaseId || ''"
+      :knowledge-bases="bases"
+      :submitting="moving"
+      @submit="handleMoveSubmit"
+    />
+
+    <!-- 删除文档确认弹窗 -->
+    <DeleteDocConfirm
+      v-model="deleteModalVisible"
+      :title="deleteDocTitle"
+      :has-children="deleteDocHasChildren"
+      :submitting="deleting"
+      @confirm="handleDeleteConfirm"
+    />
+
     <!-- 右键菜单 -->
     <DocumentContextMenu
       v-if="!props.readonly"
@@ -110,6 +138,15 @@ import OutlineItem from './OutlineItem.vue'
 // 懒加载模态框
 const CreateDocModal = defineAsyncComponent(
   () => import('./modals/CreateDocModal.vue')
+)
+const RenameDocModal = defineAsyncComponent(
+  () => import('./modals/RenameDocModal.vue')
+)
+const MoveDocModal = defineAsyncComponent(
+  () => import('./modals/MoveDocModal.vue')
+)
+const DeleteDocConfirm = defineAsyncComponent(
+  () => import('./modals/DeleteDocConfirm.vue')
 )
 
 import type { EditorDocument } from '@/types/editor'
@@ -201,6 +238,25 @@ const createParentId = ref<string | null>(null)
 const createDocType = ref<string>('Normal')
 const creating = ref(false)
 
+// 重命名相关
+const renameModalVisible = ref(false)
+const renameDocId = ref<string>('')
+const renameDocTitle = ref<string>('')
+const renaming = ref(false)
+
+// 移动相关
+const moveModalVisible = ref(false)
+const moveDocId = ref<string>('')
+const moveDocTitle = ref<string>('')
+const moving = ref(false)
+
+// 删除相关
+const deleteModalVisible = ref(false)
+const deleteDocId = ref<string>('')
+const deleteDocTitle = ref<string>('')
+const deleteDocHasChildren = ref(false)
+const deleting = ref(false)
+
 // 右键菜单相关
 const contextMenu = reactive({
   visible: false,
@@ -266,7 +322,7 @@ const handleMenuSelect = (item: MenuItem) => {
       })
       break
     case 'move':
-      ElMessage.info('移动功能待完善')
+      openMoveModal({ id: node.id, title: node.title })
       break
   }
   contextMenu.visible = false
@@ -309,12 +365,23 @@ const openCreateModal = (opts: { parentId?: string; type?: string }) => {
   createModalVisible.value = true
 }
 
-const openRenameModal = (_opts: { id: string; title: string }) => {
-  ElMessage.info('重命名功能待完善')
+const openRenameModal = (opts: { id: string; title: string }) => {
+  renameDocId.value = opts.id
+  renameDocTitle.value = opts.title
+  renameModalVisible.value = true
+}
+
+const openMoveModal = (opts: { id: string; title: string }) => {
+  moveDocId.value = opts.id
+  moveDocTitle.value = opts.title
+  moveModalVisible.value = true
 }
 
 const openDeleteModal = (_opts: { id: string; title: string; hasChildren?: boolean }) => {
-  ElMessage.info('删除功能待完善')
+  deleteDocId.value = _opts.id
+  deleteDocTitle.value = _opts.title
+  deleteDocHasChildren.value = _opts.hasChildren || false
+  deleteModalVisible.value = true
 }
 
 const handleCreateSubmit = async (data: { 
@@ -363,6 +430,95 @@ const handleCreateSubmit = async (data: {
     ElMessage.error('创建失败')
   } finally {
     creating.value = false
+  }
+}
+
+// 处理重命名提交
+const handleRenameSubmit = async (data: { title: string }) => {
+  const validTitle = data.title?.trim()
+  if (!validTitle) {
+    ElMessage.warning('请输入标题')
+    return
+  }
+
+  if (!currentBaseId.value || !renameDocId.value) {
+    ElMessage.error('无法确定文档')
+    return
+  }
+
+  renaming.value = true
+  try {
+    await kbApi.document.rename(currentBaseId.value, renameDocId.value, {
+      title: validTitle,
+    })
+
+    await loadDocuments(currentBaseId.value)
+
+    renameModalVisible.value = false
+    ElMessage.success('重命名成功')
+  } catch (error) {
+    console.error('重命名失败:', error)
+    ElMessage.error('重命名失败')
+  } finally {
+    renaming.value = false
+  }
+}
+
+// 处理移动提交
+const handleMoveSubmit = async (data: { targetKbId: string; targetParentId: string | null }) => {
+  if (!currentBaseId.value || !moveDocId.value) {
+    ElMessage.error('无法确定文档')
+    return
+  }
+
+  moving.value = true
+  try {
+    await kbApi.document.move(currentBaseId.value, moveDocId.value, {
+      targetKbId: data.targetKbId,
+      targetParentId: data.targetParentId,
+    })
+
+    await loadDocuments(currentBaseId.value)
+
+    moveModalVisible.value = false
+    ElMessage.success('移动成功')
+  } catch (error) {
+    console.error('移动失败:', error)
+    ElMessage.error('移动失败')
+  } finally {
+    moving.value = false
+  }
+}
+
+// 处理删除确认
+const handleDeleteConfirm = async (data: { includeChildren: boolean }) => {
+  if (!currentBaseId.value || !deleteDocId.value) {
+    ElMessage.error('无法确定文档')
+    return
+  }
+
+  deleting.value = true
+  try {
+    await kbApi.document.delete(
+      currentBaseId.value,
+      deleteDocId.value,
+      data.includeChildren
+    )
+
+    await loadDocuments(currentBaseId.value)
+
+    // 如果删除的是当前选中的文档，跳转到概览
+    if (selectedKey.value === deleteDocId.value) {
+      router.push(`/kb/${currentBaseId.value}/overview`)
+    }
+
+    deleteModalVisible.value = false
+    ElMessage.success('删除成功')
+  } catch (error) {
+    console.error('删除失败:', error)
+    ElMessage.error('删除失败')
+  } finally {
+    deleting.value = false
   }
 }
 

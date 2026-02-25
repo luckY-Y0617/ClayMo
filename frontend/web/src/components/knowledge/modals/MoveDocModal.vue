@@ -273,9 +273,10 @@ defineExpose({
 }
 
 .current-doc {
-  padding: 12px 14px;
-  background: #F7F7F7;
-  border: 1px solid #E0E0E0;
+  padding: 14px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -283,13 +284,17 @@ defineExpose({
 
 .current-label {
   font-size: 14px;
-  color: #666;
+  color: #6b7280;
 }
 
 .current-title {
   font-size: 14px;
   font-weight: 500;
-  color: #1a1a1a;
+  color: #1f2937;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* 目标选择区 */
@@ -302,7 +307,7 @@ defineExpose({
 .section-label {
   font-size: 14px;
   font-weight: 500;
-  color: #666;
+  color: #374151;
 }
 
 /* 知识库选择器 */
@@ -312,12 +317,12 @@ defineExpose({
 
 .select-button {
   width: 100%;
-  padding: 10px 14px;
-  background: #F7F7F7;
-  border: 1px solid #E0E0E0;
-  border-radius: 0;
+  padding: 12px 14px;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
   font-size: 14px;
-  color: #1a1a1a;
+  color: #1f2937;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -326,17 +331,16 @@ defineExpose({
 }
 
 .select-button:hover {
-  background: #FFFFFF;
-  border-color: #CCCCCC;
+  border-color: #9ca3af;
 }
 
 .select-button.is-open {
-  border-color: #999;
-  background: #FFFFFF;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
 }
 
 .select-arrow {
-  color: #999;
+  color: #9ca3af;
   transition: transform 0.2s ease;
 }
 
@@ -349,9 +353,10 @@ defineExpose({
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  background: #FFFFFF;
-  border: 1px solid #E8E8E8;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   max-height: 200px;
   overflow-y: auto;
   z-index: 10;
@@ -364,21 +369,21 @@ defineExpose({
   background: transparent;
   text-align: left;
   font-size: 14px;
-  color: #1a1a1a;
+  color: #374151;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .dropdown-item:hover {
-  background: #F5F5F5;
+  background: #f3f4f6;
 }
 
 .dropdown-item.active {
-  background: #1a1a1a;
-  color: #FFFFFF;
+  background: #4f46e5;
+  color: #fff;
 }
 
 .kb-icon {
@@ -387,8 +392,9 @@ defineExpose({
 
 /* 父文档树 */
 .parent-select {
-  border: 1px solid #E0E0E0;
-  background: #FAFAFA;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  border-radius: 8px;
   max-height: 280px;
   overflow-y: auto;
 }
@@ -399,26 +405,27 @@ defineExpose({
 
 .tree-item {
   width: 100%;
-  padding: 8px 12px;
+  padding: 10px 12px;
   border: none;
   background: transparent;
   text-align: left;
   font-size: 14px;
-  color: #1a1a1a;
+  color: #374151;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: all 0.2s ease;
+  border-radius: 6px;
+  transition: all 0.15s ease;
 }
 
 .tree-item:hover {
-  background: #F0F0F0;
+  background: #e5e7eb;
 }
 
 .tree-item.active {
-  background: #1a1a1a;
-  color: #FFFFFF;
+  background: #4f46e5;
+  color: #fff;
 }
 
 .tree-icon {
@@ -428,7 +435,7 @@ defineExpose({
 .tree-loading {
   padding: 20px;
   text-align: center;
-  color: #999;
+  color: #9ca3af;
   font-size: 13px;
   display: flex;
   align-items: center;

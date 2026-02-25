@@ -2,7 +2,7 @@
   <BaseModal :model-value="modelValue" container-class="delete-confirm-modal" @update:model-value="$emit('update:modelValue', $event)">
     <!-- 头部 -->
     <template #header>
-      <h3 class="modal-title">删除文档</h3>
+      <h3 class="modal-title">删除确认</h3>
       <button class="modal-close" @click="handleClose">
         <el-icon :size="16"><Close /></el-icon>
       </button>
@@ -10,27 +10,39 @@
 
     <!-- 内容 -->
     <template #body>
-      <p class="warning-text">
-        此操作不可恢复，确认要删除
-        <strong>「{{ title }}」</strong>
-        吗？
-      </p>
+      <div class="delete-content">
+        <div class="warning-icon">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <circle cx="24" cy="24" r="20" fill="#fef2f2"/>
+            <path d="M24 14V26M24 32H24.01" stroke="#f53f3f" stroke-width="3" stroke-linecap="round"/>
+            <path d="M32 24C32 28.4183 28.4183 32 24 32C19.5817 32 16 28.4183 16 24C16 19.5817 19.5817 16 24 16C28.4183 16 32 19.5817 32 24Z" stroke="#f53f3f" stroke-width="2"/>
+          </svg>
+        </div>
+        
+        <p class="warning-text">
+          确定要删除文档
+          <strong>「{{ title }}」</strong>
+          吗？
+        </p>
+        
+        <p class="warning-desc">此操作不可恢复，删除后数据将无法找回</p>
 
-      <div v-if="hasChildren" class="alert-box">
-        <svg class="alert-icon" width="18" height="18" viewBox="0 0 18 18" fill="none">
-          <path d="M9 6V9M9 12H9.01M17 9C17 13.4183 13.4183 17 9 17C4.58172 17 1 13.4183 1 9C1 4.58172 4.58172 1 9 1C13.4183 1 17 4.58172 17 9Z" stroke="#f53f3f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span class="alert-text">该文档包含子文档，删除后子文档也会被移除。</span>
+        <div v-if="hasChildren" class="alert-box">
+          <svg class="alert-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 5V8.5M8 11H8.01M14 8C14 11.3137 11.3137 14 8 14C4.68629 14 2 11.3137 2 8C2 4.68629 4.68629 2 8 2C11.3137 2 14 4.68629 14 8Z" stroke="#f53f3f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="alert-text">该文档包含子文档，删除后子文档也会被删除</span>
+        </div>
+
+        <label v-if="hasChildren" class="checkbox-wrapper">
+          <input
+            v-model="includeChildren"
+            type="checkbox"
+            class="custom-checkbox"
+          />
+          <span class="checkbox-label">包含删除子文档</span>
+        </label>
       </div>
-
-      <label v-if="hasChildren" class="checkbox-wrapper">
-        <input
-          v-model="includeChildren"
-          type="checkbox"
-          class="custom-checkbox"
-        />
-        <span class="checkbox-label">同时删除所有子节点</span>
-      </label>
     </template>
 
     <!-- 底部 -->
@@ -96,16 +108,92 @@ const handleConfirm = () => {
 </script>
 
 <style scoped>
+.delete-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 10px 0;
+}
+
+.warning-icon {
+  margin-bottom: 16px;
+}
+
 .warning-text {
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.6;
-  color: #666;
-  margin: 0;
+  color: #333;
+  margin: 0 0 8px;
 }
 
 .warning-text strong {
   color: #1a1a1a;
   font-weight: 600;
+}
+
+.warning-desc {
+  font-size: 13px;
+  color: #999;
+  margin: 0 0 20px;
+}
+
+.alert-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #fef2f2;
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+}
+
+.alert-icon {
+  flex-shrink: 0;
+}
+
+.alert-text {
+  font-size: 13px;
+  color: #f53f3f;
+  line-height: 1.4;
+}
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.custom-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #f53f3f;
+  cursor: pointer;
+}
+
+.checkbox-label {
+  font-size: 13px;
+  color: #666;
+  user-select: none;
+}
+
+.btn-danger {
+  background: #f53f3f;
+  color: #fff;
+  border: none;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #e63939;
+}
+
+.btn-danger:disabled {
+  background: #fab3b3;
+  cursor: not-allowed;
 }
 </style>
 

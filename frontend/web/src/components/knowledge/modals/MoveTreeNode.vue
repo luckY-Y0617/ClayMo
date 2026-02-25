@@ -107,26 +107,27 @@ const handleSelect = () => {
 
 .tree-item {
   width: 100%;
-  padding: 8px 12px;
+  padding: 10px 12px;
   border: none;
   background: transparent;
   text-align: left;
   font-size: 14px;
-  color: #1a1a1a;
+  color: #374151;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 6px;
-  transition: all 0.2s ease;
+  border-radius: 6px;
+  transition: all 0.15s ease;
 }
 
 .tree-item:hover:not(.disabled) {
-  background: #F0F0F0;
+  background: #e5e7eb;
 }
 
 .tree-item.active {
-  background: #1a1a1a;
-  color: #FFFFFF;
+  background: #4f46e5;
+  color: #fff;
 }
 
 .tree-item.disabled {
@@ -140,7 +141,7 @@ const handleSelect = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #999;
+  color: #9ca3af;
   flex-shrink: 0;
 }
 
