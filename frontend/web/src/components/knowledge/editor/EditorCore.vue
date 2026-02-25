@@ -164,8 +164,6 @@ import DocumentMentionList from './DocumentMentionList.vue'
 import BubbleHost from '@/editor/menus/bubble/BubbleHost.vue'
 import SelectionCommentPopup from './SelectionCommentPopup.vue'
 
-// Store
-import { useKbWorkspaceStore } from '@/stores/kbWorkspace'
 
 // 工具
 import { locateRangeAnchor, type RangeAnchorPosition } from '@/utils/commentAnchor'
@@ -229,9 +227,27 @@ const emit = defineEmits<{
   'add-comment-from-toolbar': []
 }>()
 
+const CustomCodeBlock = CodeBlockLowlight.extend({
+  addKeyboardShortcuts() {
+    return {
+      Enter: ({ editor }) => {
+        if (!editor.isActive('codeBlock')) return false
+
+        const { $from } = editor.state.selection
+
+        // 如果光标在 codeBlock 末尾
+        if ($from.parentOffset === $from.parent.content.size) {
+          return editor.commands.exitCode()
+        }
+
+        return false
+      },
+    }
+  },
+})
+
 // DI
 const editorSession = inject<EditorSession>('editorSession')
-const kbWorkspaceStore = useKbWorkspaceStore()
 
 // 状态
 const lastDocId = ref<string | null>(null)
@@ -287,7 +303,7 @@ const editor = useEditor({
     BlockId,
     Heading.configure({ levels: [1, 2, 3, 4, 5, 6] }),
     Underline,
-    CodeBlockLowlight.configure({ lowlight, defaultLanguage: 'plaintext' }),
+    CustomCodeBlock.configure({lowlight,defaultLanguage: 'plaintext'}),
     TaskList,
     TaskItem,
     Link.configure({ openOnClick: false }),

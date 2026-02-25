@@ -236,7 +236,7 @@ const handleAddComment = () => {
 // 文件上传
 // ========================================
 
-const { uploadFile, isUploading, uploadProgress } = useFileUpload()
+const { uploadFile } = useFileUpload()
 
 // ========================================
 // UI 状态
@@ -335,7 +335,7 @@ const onImageFileChange = async (event: Event) => {
       throw new Error('empty url')
     }
 
-    editor.value.chain().focus().setImage({ src: url } as Record<string, unknown>).run()
+    editor.value.chain().focus().setImage({ src: url }).run()
   } catch (error) {
     console.error('上传图片失败:', error)
     ElMessage.error('上传图片失败，请稍后重试')
