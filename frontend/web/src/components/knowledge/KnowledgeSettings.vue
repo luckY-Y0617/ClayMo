@@ -397,7 +397,6 @@ const handleSave = () => {
   transform: scale(1.1);
 }
 
-/* 可见性选项 */
 .visibility-list {
   display: flex;
   flex-direction: column;
