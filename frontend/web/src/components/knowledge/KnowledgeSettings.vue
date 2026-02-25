@@ -491,7 +491,6 @@ const handleSave = () => {
   color: #64748b;
 }
 
-/* 危险操作 */
 .danger-item {
   display: flex;
   align-items: center;
