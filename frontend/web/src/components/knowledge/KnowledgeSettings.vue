@@ -346,7 +346,6 @@ const handleSave = () => {
   width: 100%;
 }
 
-/* 图标选择器 */
 .icon-picker-inline {
   display: flex;
   align-items: center;
