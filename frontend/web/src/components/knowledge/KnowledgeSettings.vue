@@ -324,7 +324,6 @@ const handleSave = () => {
   gap: 16px;
 }
 
-/* 表单项 */
 .form-item-group {
   display: flex;
   flex-direction: column;
