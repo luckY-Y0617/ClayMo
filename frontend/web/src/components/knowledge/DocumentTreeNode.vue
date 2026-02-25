@@ -69,6 +69,7 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue'
 import { ArrowRight, Document, Folder, FolderOpened } from '@element-plus/icons-vue'
+import { DocumentType } from '@/api/modules/knowledge'
 import type { DocumentNode } from '@/api/modules/knowledge'
 import { useDocumentTreeStore } from '@/stores'
 
@@ -110,7 +111,7 @@ const hasChildren = computed(() => {
 })
 
 const isFolder = computed(() => {
-  return props.node.type === 'Folder' || props.node.type === 1
+  return props.node.type === DocumentType.Folder
 })
 
 const isExpanded = computed(() => {
