@@ -19,6 +19,7 @@ declare module 'vue' {
     DocumentTreeNode: typeof import('./../components/knowledge/DocumentTreeNode.vue')['default']
     EditorCore: typeof import('./../components/knowledge/editor/EditorCore.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
+    ElEmpty: typeof import('element-plus/es')['ElEmpty']
     ElIcon: typeof import('element-plus/es')['ElIcon']
     ElInput: typeof import('element-plus/es')['ElInput']
     ElSwitch: typeof import('element-plus/es')['ElSwitch']
