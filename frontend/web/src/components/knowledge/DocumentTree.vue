@@ -175,7 +175,6 @@ const handleMenuSelect = (item: MenuItem) => {
   margin-right: -8px;
 }
 
-/* 自定义滚动条 */
 .tree-content::-webkit-scrollbar {
   width: 6px;
 }
