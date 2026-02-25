@@ -46,7 +46,18 @@
         <div class="editor-and-comments">
           <div class="editor-container-wrapper">
             <transition name="page-transition" mode="out-in">
-              <div class="editor-main" v-if="currentDocument" :key="currentDocument.id">
+              <!-- 文件夹类型显示占位提示 -->
+              <div v-if="isFolderDocument" class="folder-placeholder" key="folder">
+                <div class="folder-icon">
+                  <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                    <path d="M8 16a4 4 0 0 1 4-4h12l4 4h20a4 4 0 0 1 4 4v32a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4V16z" stroke="currentColor" stroke-width="2" fill="none"/>
+                  </svg>
+                </div>
+                <h3 class="folder-title">{{ currentDocument?.title }}</h3>
+                <p class="folder-hint">这是一个文件夹，用于组织文档结构</p>
+              </div>
+              <!-- 普通文档显示编辑器 -->
+              <div v-else class="editor-main" :key="currentDocument?.id">
                 <EditorCore
                   :document="currentDocument"
                   :comments="canViewComment ? comments : []"
@@ -63,9 +74,6 @@
                   @open-comment-drawer="handleOpenCommentDrawer"
                   @editor-ready="handleEditorReady"
                 />
-              </div>
-              <div v-else class="empty-state" key="empty">
-                <el-empty description="请选择一个文档开始编辑" />
               </div>
             </transition>
           </div>
@@ -238,10 +246,21 @@ const currentBaseId = computed(() =>
 // 通过 provide 共享
 provide('baseId', currentBaseId)
 
+// 文档类型常量
+const DOCUMENT_TYPE = {
+  NORMAL: 0,
+  FOLDER: 1,
+} as const
+
 // 权限相关计算属性
 const isReadOnly = computed(() => {
   if (!currentBaseId.value) return true
   return !permissionStore.canEditDoc(currentBaseId.value)
+})
+
+// 判断是否为文件夹类型文档
+const isFolderDocument = computed(() => {
+  return currentDocument.value?.type === DOCUMENT_TYPE.FOLDER || currentDocument.value?.type === 'Folder' || currentDocument.value?.type === '1'
 })
 
 const canViewComment = computed(() => {
@@ -317,7 +336,11 @@ const layout = ref<LayoutState>({
   mobileSidebarVisible: false,
 })
 
-const isPreviewing = computed(() => layout.value.mode === 'preview' || isReadOnly.value)
+const isPreviewing = computed(() => {
+  // 文件夹类型文档始终不可编辑
+  if (isFolderDocument.value) return true
+  return layout.value.mode === 'preview' || isReadOnly.value
+})
 
 // 文档搜索状态
 const documentSearch = ref<DocumentSearchState>({
@@ -739,6 +762,40 @@ const handleEditorReady = (editor: Editor) => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* 文件夹占位符 */
+.folder-placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: #666;
+}
+
+.folder-icon {
+  color: #faad14;
+  margin-bottom: 16px;
+}
+
+.folder-icon svg {
+  width: 64px;
+  height: 64px;
+}
+
+.folder-title {
+  font-size: 20px;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin: 0 0 8px;
+}
+
+.folder-hint {
+  font-size: 14px;
+  color: #999;
+  margin: 0;
 }
 
 .document-search-results {

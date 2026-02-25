@@ -81,4 +81,11 @@ public class Document : FullAuditedAggregateRoot<Guid>, IMultiTenant
         Order = newOrder;
     }
 
+    /// <summary>
+    /// 设置文档类型
+    /// </summary>
+    public void SetType(DocumentType type)
+    {
+        Type = type;
+    }
 }

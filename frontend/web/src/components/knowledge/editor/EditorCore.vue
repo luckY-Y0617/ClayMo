@@ -126,7 +126,6 @@ import { ref, onMounted, onBeforeUnmount, watch, watchEffect, computed, inject, 
 import { EditorContent, useEditor, type Editor } from '@tiptap/vue-3'
 import { ElMessage } from 'element-plus'
 import { StarterKit } from '@tiptap/starter-kit'
-import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import { Heading } from '@tiptap/extension-heading'
 import { Underline } from '@tiptap/extension-underline'
 import { TaskList } from '@tiptap/extension-task-list'
@@ -140,12 +139,11 @@ import { Placeholder } from '@tiptap/extension-placeholder'
 import { TextAlign } from '@tiptap/extension-text-align'
 import { Color } from '@tiptap/extension-color'
 import { TextStyle } from '@tiptap/extension-text-style'
-import { TextSelection } from '@tiptap/pm/state'
+import { TextSelection, NodeSelection } from '@tiptap/pm/state'
 import { debounce } from 'lodash-es'
 
 // 自定义扩展
 import {
-  lowlight,
   SlashCommand,
   InlineDocumentReference,
   CardDocumentReference,
@@ -155,6 +153,7 @@ import {
   ImageBlock,
   FileBlock,
   TrailingParagraph,
+  CustomCodeBlock
 } from '@/editor/extensions'
 
 // 组件
@@ -227,24 +226,6 @@ const emit = defineEmits<{
   'add-comment-from-toolbar': []
 }>()
 
-const CustomCodeBlock = CodeBlockLowlight.extend({
-  addKeyboardShortcuts() {
-    return {
-      Enter: ({ editor }) => {
-        if (!editor.isActive('codeBlock')) return false
-
-        const { $from } = editor.state.selection
-
-        // 如果光标在 codeBlock 末尾
-        if ($from.parentOffset === $from.parent.content.size) {
-          return editor.commands.exitCode()
-        }
-
-        return false
-      },
-    }
-  },
-})
 
 // DI
 const editorSession = inject<EditorSession>('editorSession')
@@ -252,6 +233,7 @@ const editorSession = inject<EditorSession>('editorSession')
 // 状态
 const lastDocId = ref<string | null>(null)
 const orphanCommentIds = ref(new Set<string>())
+let isRenderingCommentMarks = false
 
 // 评论预览状态
 const commentPreviewTooltip = ref<Position | null>(null)
@@ -303,7 +285,9 @@ const editor = useEditor({
     BlockId,
     Heading.configure({ levels: [1, 2, 3, 4, 5, 6] }),
     Underline,
-    CustomCodeBlock.configure({lowlight,defaultLanguage: 'plaintext'}),
+    CustomCodeBlock.configure({
+      defaultLanguage: 'plaintext',
+    }),
     TaskList,
     TaskItem,
     Link.configure({ openOnClick: false }),
@@ -403,34 +387,42 @@ const mergeCommentMarkOnTr = (
 
 const renderCommentMarks = () => {
   if (!editor.value) return
+  if (isRenderingCommentMarks) return
+  isRenderingCommentMarks = true
 
-  const view = editor.value.view
-  const state = view.state
-  const markType = state.schema.marks.commentMark
-  if (!markType) return
+  try {
+    const view = editor.value.view
+    let state = view.state
+    const markType = state.schema.marks.commentMark
+    if (!markType) return
 
-  const tr = state.tr
-  tr.removeMark(0, state.doc.content.size, markType)
+    const tr = state.tr
+    tr.removeMark(0, state.doc.content.size, markType)
 
-  const orphan = new Set<string>()
-  const flat = flattenCommentTree(props.comments)
+    const orphan = new Set<string>()
+    const flat = flattenCommentTree(props.comments)
 
-  for (const c of flat) {
-    if (!c?.id || !c.position) continue
+    for (const c of flat) {
+      if (!c?.id || !c.position) continue
 
-    if (c.position.type === 'range') {
-      const loc = locateRangeAnchor(editor.value, c.position as RangeAnchorPosition)
-      if (!loc) {
-        orphan.add(c.id)
-        continue
+      if (c.position.type === 'range') {
+        const loc = locateRangeAnchor(editor.value, c.position as RangeAnchorPosition)
+        if (!loc) {
+          orphan.add(c.id)
+          continue
+        }
+        const r = clampRange(state, loc.from, loc.to)
+        mergeCommentMarkOnTr(tr, markType, r.from, r.to, c.id)
       }
-      const r = clampRange(state, loc.from, loc.to)
-      mergeCommentMarkOnTr(tr, markType, r.from, r.to, c.id)
     }
-  }
 
-  orphanCommentIds.value = orphan
-  view.dispatch(tr)
+    orphanCommentIds.value = orphan
+    // Get fresh state reference before dispatch to avoid mismatched transaction
+    state = view.state
+    view.dispatch(tr)
+  } finally {
+    isRenderingCommentMarks = false
+  }
 }
 
 const scheduleRenderMarks = (ms: number) => setTimeout(() => renderCommentMarks(), ms)
@@ -441,7 +433,8 @@ const resetSelectionToStart = () => {
   if (!ed || ed.isDestroyed) return
 
   const { state, view } = ed
-  if (!state.selection.node) return
+  // 检查是否是节点选区（而非文本选区）
+  if (state.selection instanceof NodeSelection) return
 
   try {
     let pos = 0
@@ -517,7 +510,8 @@ watch(
     const newDocId = newDoc.id
     if (newDocId !== lastDocId.value) {
       lastDocId.value = newDocId
-      editor.value.commands.setContent(newDoc.content || '<p></p>', false, { preserveWhitespace: 'full' })
+      const content = newDoc.content || '<p></p>'
+      editor.value.commands.setContent(content, { emitUpdate: false })
 
       lastSavedPlainText = editor.value.state.doc.textBetween(0, editor.value.state.doc.content.size, '\n')
 

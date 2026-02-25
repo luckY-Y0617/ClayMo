@@ -74,6 +74,8 @@
       v-model="createModalVisible"
       :default-base-id="currentBaseId || undefined"
       :default-parent-id="createParentId || undefined"
+      :default-type="createDocType"
+      :parent-options="parentOptions"
       :submitting="creating"
       @submit="handleCreateSubmit"
     />
@@ -165,6 +167,25 @@ const activeHeadingId = ref<string | null>(null)
 const documents = computed<DocumentNode[]>(() => 
   documentTreeStore.getDocuments(currentBaseId.value) as DocumentNode[]
 )
+
+// 转换文档树为父文档选项格式
+interface ParentOption {
+  label: string
+  value: string
+  children?: ParentOption[]
+}
+
+const parentOptions = computed<ParentOption[]>(() => {
+  const convertToOptions = (docs: DocumentNode[]): ParentOption[] => {
+    return docs.map(doc => ({
+      label: doc.title,
+      value: doc.id,
+      children: doc.children ? convertToOptions(doc.children) : undefined
+    })).filter(doc => doc.label) // 过滤掉空标题
+  }
+  return convertToOptions(documents.value)
+})
+
 const selectedKey = computed(() => documentTreeStore.getSelectedKey(currentBaseId.value))
 const expandedKeys = computed(() => currentBaseId.value ? documentTreeStore.getExpandedKeys(currentBaseId.value) : [])
 const bases = computed(() => kbWorkspaceStore.bases)
@@ -177,6 +198,7 @@ const currentBaseName = computed(() => {
 
 const createModalVisible = ref(false)
 const createParentId = ref<string | null>(null)
+const createDocType = ref<string>('Normal')
 const creating = ref(false)
 
 // 右键菜单相关
@@ -198,21 +220,21 @@ const menuItems = computed((): MenuItem[] => {
   const items: MenuItem[] = [
     { key: 'open', label: '打开文档', shortcut: 'Enter' },
   ]
-  
+
   if (props.canCreateDoc) {
-    items.push({ key: 'create', label: '新建子文档', shortcut: 'Ctrl+Enter' })
+    items.push({ key: 'create', label: '新建', shortcut: 'Ctrl+Enter' })
   }
-  
+
   if (props.canMoveDoc) {
     items.push({ key: 'move', label: '移动到...' })
   }
-  
+
   items.push({ key: 'rename', label: '重命名', shortcut: 'F2' })
-  
+
   if (props.canDeleteDoc) {
     items.push({ key: 'delete', label: '删除', shortcut: 'Delete', danger: true })
   }
-  
+
   return items
 })
 
@@ -281,8 +303,9 @@ const handleGoToOverview = () => {
   router.push(`/kb/${currentBaseId.value}/overview`)
 }
 
-const openCreateModal = (opts: { parentId?: string }) => {
+const openCreateModal = (opts: { parentId?: string; type?: string }) => {
   createParentId.value = opts.parentId || null
+  createDocType.value = opts.type || 'Normal'
   createModalVisible.value = true
 }
 
@@ -313,18 +336,28 @@ const handleCreateSubmit = async (data: {
   
   creating.value = true
   try {
+    const docType = createDocType.value === 'Folder' ? 1 : 0
+    const isFolder = createDocType.value === 'Folder'
+
     const newDoc = await kbApi.document.create(targetBase, {
       title: validTitle,
       parentId: data.parentId || createParentId.value || null,
-      type: 'Normal',
+      type: docType,
     })
 
     await loadDocuments(targetBase)
 
     createModalVisible.value = false
     createParentId.value = null
-    router.push(`/kb/${targetBase}/edit/${newDoc.id}`)
-    ElMessage.success('文档创建成功')
+    createDocType.value = 'Normal'
+
+    // 文件夹类型不跳转到编辑页面
+    if (isFolder) {
+      ElMessage.success('文件夹创建成功')
+    } else {
+      router.push(`/kb/${targetBase}/edit/${newDoc.id}`)
+      ElMessage.success('文档创建成功')
+    }
   } catch (error) {
     console.error('创建文档失败:', error)
     ElMessage.error('创建失败')

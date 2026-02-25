@@ -63,7 +63,7 @@ export interface RecentActivityDto {
 }
 
 /**
- * 获取最近操作活动（仪表盘用）
+ * 获取最近操作活动
  * GET /api/app/audit-log/recent-activities
  */
 export function getRecentActivities(limit: number = 10): Promise<RecentActivityDto[]> {

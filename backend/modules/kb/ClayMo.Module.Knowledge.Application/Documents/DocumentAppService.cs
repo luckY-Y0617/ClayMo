@@ -317,6 +317,14 @@ public class DocumentAppService : ApplicationService, IDocumentAppService
             throw new EntityNotFoundException(typeof(Document), id);
         }
 
+        // 禁止编辑文件夹类型文档的内容
+        if (doc.Type == DocumentType.Folder)
+        {
+            throw new BusinessException("Document:CannotEditFolder")
+                .WithData("DocumentId", doc.Id.ToString())
+                .WithData("Message", "文件夹类型文档不允许编辑内容");
+        }
+
         // ✅ 这里保持你原本逻辑：AutoSave / ManualSave
         var source = input.IsAutoSave
             ? DocumentVersionSource.AutoSave

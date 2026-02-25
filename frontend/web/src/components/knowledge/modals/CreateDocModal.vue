@@ -6,7 +6,7 @@
   >
     <!-- 头部 -->
     <template #header>
-      <h3 class="modal-title">新建文档</h3>
+      <h3 class="modal-title">新建{{ form.type === 'Folder' ? '文件夹' : '文档' }}</h3>
       <button class="modal-close" @click="handleClose">
         <el-icon :size="16"><Close /></el-icon>
       </button>
@@ -32,6 +32,36 @@
             <span class="input-count">{{ form.title.length }} / 80</span>
           </div>
           <p v-if="titleError" class="error-message">{{ titleError }}</p>
+        </div>
+
+        <!-- 文档类型 -->
+        <div class="form-item">
+          <label class="form-label">类型</label>
+          <div class="type-selector">
+            <button
+              type="button"
+              class="type-btn"
+              :class="{ active: form.type === 'Normal' }"
+              @click="form.type = 'Normal'"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M3 2h6l4 4v8a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M9 2v4h4" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              <span>文档</span>
+            </button>
+            <button
+              type="button"
+              class="type-btn"
+              :class="{ active: form.type === 'Folder' }"
+              @click="form.type = 'Folder'"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M2 4a1 1 0 0 1 1-1h3l1 1h5a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4z" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              <span>文件夹</span>
+            </button>
+          </div>
         </div>
 
         <!-- 父文档 -->
@@ -144,6 +174,7 @@ interface Props {
   parentOptions?: ParentOption[]
   defaultBaseId?: string
   defaultParentId?: string
+  defaultType?: string
   submitting?: boolean
 }
 
@@ -152,12 +183,13 @@ const props = withDefaults(defineProps<Props>(), {
   parentOptions: () => [],
   defaultBaseId: '',
   defaultParentId: '',
+  defaultType: 'Normal',
   submitting: false,
 })
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  submit: [payload: { baseId: string; title: string; parentId: string }]
+  submit: [payload: { baseId: string; title: string; parentId: string; type: string }]
 }>()
 
 // Form State
@@ -165,6 +197,7 @@ const form = reactive({
   baseId: '',
   title: '',
   parentId: '',
+  type: 'Normal',
 })
 
 const titleError = ref('')
@@ -284,6 +317,7 @@ const resetForm = () => {
   form.baseId = props.defaultBaseId || ''
   form.title = ''
   form.parentId = props.defaultParentId || ''
+  form.type = props.defaultType || 'Normal'
   titleError.value = ''
   closeAllDropdowns()
 }
@@ -424,6 +458,43 @@ onUnmounted(() => {
   font-size: 12px;
   color: #f53f3f;
   margin: 0;
+}
+
+/* 类型选择器 */
+.type-selector {
+  display: flex;
+  gap: 8px;
+}
+
+.type-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: 1px solid #E0E0E0;
+  border-radius: 0;
+  background: #F7F7F7;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.type-btn:hover {
+  background: #FFFFFF;
+  border-color: #999;
+}
+
+.type-btn.active {
+  background: #1a1a1a;
+  border-color: #1a1a1a;
+  color: #FFFFFF;
+}
+
+.type-btn svg {
+  flex-shrink: 0;
 }
 
 /* 自定义选择器 */

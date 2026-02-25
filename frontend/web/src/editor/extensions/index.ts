@@ -40,5 +40,7 @@ export {
 export { AtMention, type AtMentionOptions, type MentionItem } from './AtMention'
 
 // 代码块（使用 lowlight 进行语法高亮）
-export { lowlight } from './CodeBlock'
+export { default as lowlight } from './lowlight'
+
+export { CustomCodeBlock } from './CustomCodeBlock'
 

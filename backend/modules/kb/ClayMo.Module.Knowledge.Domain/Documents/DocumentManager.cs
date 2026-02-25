@@ -42,14 +42,21 @@ public class DocumentManager : DomainService
             title: title,
             parentId: parentId);
 
+        // 设置文档类型
+        doc.SetType(type);
+
         doc.MoveTo(parentId, order);
 
         await _documentRepository.InsertAsync(doc, autoSave: true, cancellationToken);
 
-        await _documentContentManager.CreateInitialContentAsync(
-            doc,
-            initialContentJson,
-            cancellationToken);
+        // 只有普通文档才创建内容
+        if (type == DocumentType.Normal)
+        {
+            await _documentContentManager.CreateInitialContentAsync(
+                doc,
+                initialContentJson,
+                cancellationToken);
+        }
 
         return doc;
     }

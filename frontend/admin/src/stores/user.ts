@@ -38,10 +38,8 @@ export const useUserStore = defineStore(
     const login = async (username: string, password: string, selectedTenantId: string) => {
       setTenantId(selectedTenantId)
       
-      // Collect device info
       const deviceInfo = getDeviceInfo()
       
-      // Send login request with device info
       await adminLogin({
         userName: username,
         password,
@@ -61,13 +59,10 @@ export const useUserStore = defineStore(
       }
     }
 
-    // Clear local auth state (without calling backend)
     const clearAuthState = () => {
-      // 清理状态
       currentUser.value = null
       tenantId.value = ''
       
-      // 清理 localStorage
       localStorage.removeItem('user')
       localStorage.removeItem('token')
       
@@ -76,17 +71,13 @@ export const useUserStore = defineStore(
       cookies.forEach(cookie => {
         const [name] = cookie.split('=')
         const cookieName = name.trim()
-        // 清理当前域下的 cookie
         document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`
-        // 清理可能的子域 cookie
         document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`
-        // 清理根域 cookie (e.g., .example.com)
         const rootDomain = window.location.hostname.split('.').slice(-2).join('.')
         document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=.${rootDomain}`
       })
     }
 
-    // Logout
     const logout = async () => {
       try {
         await adminLogout()
@@ -96,7 +87,6 @@ export const useUserStore = defineStore(
       }
     }
 
-    // Fetch current user info
     const fetchCurrentUser = async () => {
       try {
         currentUser.value = await getCurrentUser()

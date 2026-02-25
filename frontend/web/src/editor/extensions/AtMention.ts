@@ -9,7 +9,6 @@ import Suggestion, { type SuggestionProps, type SuggestionKeyDownProps } from '@
 import { PluginKey } from '@tiptap/pm/state'
 import { VueRenderer } from '@tiptap/vue-3'
 import tippy, { type Instance as TippyInstance } from 'tippy.js'
-import type { Editor } from '@tiptap/vue-3'
 
 // PluginKey 必须在模块级别创建，确保只有一个实例
 // 否则编辑器重新挂载时会报 "Adding different instances of a keyed plugin" 错误
@@ -21,23 +20,6 @@ export interface MentionItem {
 }
 
 export interface AtMentionOptions {
-  suggestion: {
-    char: string
-    allowSpaces: boolean
-    items: (props: { query: string }) => MentionItem[]
-    render: () => {
-      onStart: (props: SuggestionProps<MentionItem>) => void
-      onUpdate: (props: SuggestionProps<MentionItem>) => void
-      onKeyDown: (props: SuggestionKeyDownProps) => boolean
-      onExit: () => void
-    }
-    command: (props: {
-      editor: Editor
-      range: { from: number; to: number }
-      props: MentionItem
-    }) => void
-  }
-  /** 文档提及列表组件 */
   mentionListComponent?: unknown
 }
 
@@ -47,7 +29,17 @@ export const AtMention = Extension.create<AtMentionOptions>({
   addOptions() {
     return {
       mentionListComponent: null,
-      suggestion: {
+    }
+  },
+
+  addProseMirrorPlugins() {
+    // 在这里捕获 mentionListComponent，通过闭包传递给 render
+    const mentionListComponent = this.options.mentionListComponent
+
+    return [
+      Suggestion({
+        editor: this.editor,
+        pluginKey: atMentionPluginKey,
         char: '@',
         allowSpaces: false,
         items: () => {
@@ -79,27 +71,30 @@ export const AtMention = Extension.create<AtMentionOptions>({
 
           return {
             onStart: (props: SuggestionProps<MentionItem>) => {
-              if (!this.options.mentionListComponent) {
+              if (!mentionListComponent) {
                 console.warn('AtMention: mentionListComponent not provided')
                 return
               }
 
               component = new VueRenderer(
-                this.options.mentionListComponent as Parameters<typeof VueRenderer>[0],
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                mentionListComponent as any,
                 {
                   props: withCommonProps(props),
                   editor: props.editor,
                 }
               )
 
-              if (!props.clientRect) {
+              if (!props.clientRect || !component.element) {
                 return
               }
 
-              const instance = tippy('body', {
+              const container = document.createElement('div')
+              container.appendChild(component.element)
+
+              const instance = tippy(container, {
                 getReferenceClientRect: props.clientRect as () => DOMRect,
                 appendTo: () => document.body,
-                content: component.element,
                 showOnCreate: true,
                 interactive: true,
                 trigger: 'manual',
@@ -139,15 +134,11 @@ export const AtMention = Extension.create<AtMentionOptions>({
         command: ({
           editor,
           range,
-          props,
-        }: {
-          editor: Editor
-          range: { from: number; to: number }
-          props: MentionItem
+          props: mentionItem,
         }) => {
-          const { docId, docTitle } = props
+          const { docId, docTitle } = mentionItem
           if (docId && docTitle) {
-            editor
+            (editor as any)
               .chain()
               .focus()
               .deleteRange(range)
@@ -161,16 +152,6 @@ export const AtMention = Extension.create<AtMentionOptions>({
               .run()
           }
         },
-      },
-    }
-  },
-
-  addProseMirrorPlugins() {
-    return [
-      Suggestion({
-        editor: this.editor,
-        pluginKey: atMentionPluginKey,
-        ...this.options.suggestion,
       }),
     ]
   },

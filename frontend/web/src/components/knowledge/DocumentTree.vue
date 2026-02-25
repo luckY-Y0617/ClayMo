@@ -103,21 +103,21 @@ const menuItems = computed((): MenuItem[] => {
   const items: MenuItem[] = [
     { key: 'open', label: '打开文档', shortcut: 'Enter' },
   ]
-  
+
   if (props.canCreate) {
-    items.push({ key: 'create', label: '新建子文档', shortcut: 'Ctrl+Enter' })
+    items.push({ key: 'create', label: '新建', shortcut: 'Ctrl+Enter' })
   }
-  
+
   if (props.canMove) {
     items.push({ key: 'move', label: '移动到...' })
   }
-  
+
   items.push({ key: 'rename', label: '重命名', shortcut: 'F2' })
-  
+
   if (props.canDelete) {
     items.push({ key: 'delete', label: '删除', shortcut: 'Delete', danger: true })
   }
-  
+
   return items
 })
 

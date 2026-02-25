@@ -2,13 +2,26 @@
   <div class="tree-node">
     <div
       class="node-item"
-      :class="{ active: node.id === selectedKey }"
+      :class="{
+        active: node.id === selectedKey,
+        'is-folder': isFolder,
+      }"
       :style="{ paddingLeft: `${depth * 20 + 12}px` }"
       @click="handleSelect"
       @contextmenu.stop.prevent="handleContextMenu"
     >
+      <!-- 文件夹展开/收起图标 -->
       <el-icon
-        v-if="hasChildren"
+        v-if="isFolder"
+        class="expand-icon folder-expand"
+        :class="{ expanded: isExpanded }"
+        @click.stop="toggleExpand"
+      >
+        <ArrowRight />
+      </el-icon>
+      <!-- 文档的展开图标（仅当有子节点时显示） -->
+      <el-icon
+        v-else-if="hasChildren"
         class="expand-icon"
         :class="{ expanded: isExpanded }"
         @click.stop="toggleExpand"
@@ -16,10 +29,20 @@
         <ArrowRight />
       </el-icon>
       <div v-else class="expand-placeholder"></div>
-      <div class="node-icon-wrapper">
+
+      <!-- 文件夹图标 -->
+      <div v-if="isFolder" class="node-icon-wrapper folder-icon-wrapper">
+        <el-icon class="folder-icon">
+          <FolderOpened v-if="isExpanded && hasChildren" />
+          <Folder v-else />
+        </el-icon>
+      </div>
+      <!-- 文档图标 -->
+      <div v-else class="node-icon-wrapper">
         <el-icon class="doc-icon"><Document /></el-icon>
       </div>
-      <span class="node-title">{{ node.title }}</span>
+
+      <span class="node-title" :class="{ 'folder-title': isFolder }">{{ node.title }}</span>
       <span v-if="node.children && node.children.length > 0" class="node-count">
         {{ node.children.length }}
       </span>
@@ -45,7 +68,7 @@
 
 <script setup lang="ts">
 import { computed, inject } from 'vue'
-import { ArrowRight, Document } from '@element-plus/icons-vue'
+import { ArrowRight, Document, Folder, FolderOpened } from '@element-plus/icons-vue'
 import type { DocumentNode } from '@/api/modules/knowledge'
 import { useDocumentTreeStore } from '@/stores'
 
@@ -84,6 +107,10 @@ const documentTreeStore = useDocumentTreeStore()
 
 const hasChildren = computed(() => {
   return props.node.children && props.node.children.length > 0
+})
+
+const isFolder = computed(() => {
+  return props.node.type === 'Folder' || props.node.type === 1
 })
 
 const isExpanded = computed(() => {
@@ -149,6 +176,16 @@ const handleContextMenu = (event: MouseEvent) => {
   color: #3B82F6;
 }
 
+/* 文件夹展开图标 */
+.folder-expand {
+  opacity: 0.8;
+  color: #faad14;
+}
+
+.folder-expand:hover {
+  color: #d48806;
+}
+
 .node-item:hover .expand-icon {
   opacity: 1;
   color: #3B82F6;
@@ -190,6 +227,42 @@ const handleContextMenu = (event: MouseEvent) => {
 .node-item.active .doc-icon {
   opacity: 1;
   color: #1D4ED8;
+}
+
+/* 文件夹图标样式 */
+.folder-icon {
+  font-size: 16px;
+  color: #e6a23c;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.node-item:hover .folder-icon {
+  color: #d48806;
+  transform: scale(1.1);
+}
+
+.node-item.active .folder-icon {
+  color: #cf9236;
+}
+
+/* 文件夹标题样式 */
+.folder-title {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.node-item:hover .folder-title {
+  color: #1E40AF;
+}
+
+.node-item.active .folder-title {
+  color: #1D4ED8;
+  font-weight: 600;
+}
+
+/* 文件夹选中状态 - 统一使用左侧蓝色竖条 */
+.node-item.is-folder.active {
+  padding-left: 13px;
 }
 
 .node-title {

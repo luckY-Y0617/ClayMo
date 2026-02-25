@@ -11,7 +11,6 @@ import type {
  * 获取权限定义树（新接口）
  * GET /api/app/permission-definitions
  * 返回按模块/分组组织的权限定义树
- * 权限：SystemPermissions.PermissionCenter.View
  */
 export function getPermissionDefinitions(): Promise<PermissionDefinitionTreeDto> {
   return get('/app/permission-definitions')
@@ -34,7 +33,3 @@ export function getPermissionModules(): Promise<PermissionModule[]> {
 export function getPermissionModuleDetail(moduleCode: string): Promise<PermissionModuleDetail> {
   return get(`/app/permission-catalog/modules/${moduleCode}`)
 }
-
-// ============ 以下接口已停用（permission-center 模块已移除） ============
-// 草稿目录管理、草稿发布与差异、发布操作日志等接口已不再可用
-// 权限目录由 Identity 模块接管，请使用 getPermissionDefinitions()

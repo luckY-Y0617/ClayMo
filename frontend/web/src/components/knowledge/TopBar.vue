@@ -1,18 +1,18 @@
 <template>
-  <div class="top-bar">
+  <div class="top-bar" :class="{ 'is-folder': isFolder }">
     <div class="top-bar-left">
       <!-- 标题编辑器 -->
       <input
         v-model="title"
         class="title-input"
-        placeholder="输入文档标题..."
-        :readonly="isReadOnly"
+        :placeholder="isFolder ? '文件夹' : '输入文档标题...'"
+        :readonly="isReadOnly || isFolder"
         @blur="handleTitleBlur"
         @keyup.enter="handleTitleEnter"
       />
-      
+
       <!-- 元信息行 -->
-      <div v-if="currentDocument" class="meta-row">
+      <div v-if="currentDocument && !isFolder" class="meta-row">
         <div class="meta-info">
           <span class="last-edit">
             最后编辑：{{ lastEditTime }}
@@ -21,7 +21,8 @@
       </div>
     </div>
 
-    <div class="top-bar-right">
+    <!-- 文件夹类型隐藏右侧所有操作按钮 -->
+    <div v-if="!isFolder" class="top-bar-right">
       <!-- 模式切换 -->
       <div v-if="!isReadOnly" class="mode-switch">
         <button
@@ -108,11 +109,13 @@ interface EditorSession {
 interface Props {
   layoutMode?: string
   isReadOnly?: boolean
+  isFolder?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   layoutMode: 'write',
   isReadOnly: false,
+  isFolder: false,
 })
 
 const emit = defineEmits<{
@@ -130,6 +133,13 @@ const permissionStore = usePermissionStore()
 const title = ref('')
 const saveStatus = computed(() => editorSession?.saveStatus.value || 'saved')
 const currentDocument = computed(() => editorSession?.currentDocument.value)
+
+// 判断是否为文件夹类型
+const isFolder = computed(() => {
+  if (props.isFolder) return true
+  const docType = currentDocument.value?.type
+  return docType === 'Folder' || docType === 1
+})
 
 // 版本历史权限检查
 const canViewVersion = computed(() => {
@@ -245,6 +255,13 @@ const setMode = (mode: 'write' | 'preview') => {
   position: sticky;
   top: 0;
   z-index: 100;
+}
+
+/* 文件夹类型顶部栏样式 */
+.top-bar.is-folder {
+  background: transparent;
+  border-bottom: none;
+  padding: 16px 48px 8px;
 }
 
 .top-bar-left {
