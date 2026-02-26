@@ -1,6 +1,5 @@
 <template>
   <BaseModal :model-value="modelValue" container-class="delete-confirm-modal" @update:model-value="$emit('update:modelValue', $event)">
-    <!-- 头部 -->
     <template #header>
       <h3 class="modal-title">删除确认</h3>
       <button class="modal-close" @click="handleClose">
