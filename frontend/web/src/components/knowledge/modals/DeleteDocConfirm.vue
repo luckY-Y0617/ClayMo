@@ -7,7 +7,6 @@
       </button>
     </template>
 
-    <!-- 内容 -->
     <template #body>
       <div class="delete-content">
         <p class="warning-text">
