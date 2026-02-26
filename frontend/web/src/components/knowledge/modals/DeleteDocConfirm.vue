@@ -35,7 +35,6 @@
       </div>
     </template>
 
-    <!-- 底部 -->
     <template #footer>
       <button type="button" class="btn btn-secondary" @click="handleClose">取消</button>
       <button
