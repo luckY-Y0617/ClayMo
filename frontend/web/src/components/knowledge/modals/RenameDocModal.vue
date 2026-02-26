@@ -8,7 +8,6 @@
       </button>
     </template>
 
-    <!-- 内容 -->
     <template #body>
       <form class="modal-form" @submit.prevent="handleSubmit">
         <!-- 当前标题 -->
