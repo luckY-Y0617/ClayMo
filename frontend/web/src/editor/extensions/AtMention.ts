@@ -89,12 +89,11 @@ export const AtMention = Extension.create<AtMentionOptions>({
                 return
               }
 
-              const container = document.createElement('div')
-              container.appendChild(component.element)
-
-              const instance = tippy(container, {
+              // 使用与 SlashCommand 相同的配置方式
+              const instance = tippy(document.body, {
                 getReferenceClientRect: props.clientRect as () => DOMRect,
                 appendTo: () => document.body,
+                content: component.element as HTMLElement,
                 showOnCreate: true,
                 interactive: true,
                 trigger: 'manual',

@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { kbApi } from '@/api'
 import { useRoute } from 'vue-router'
 import type { MentionItem } from '@/editor/extensions/AtMention'
@@ -49,26 +49,64 @@ const items = ref<DocumentItem[]>([])
 const loading = ref(false)
 const selectedIndex = ref(0)
 
+// 缓存文档树，避免每次搜索都请求
+const allDocuments = ref<DocumentItem[]>([])
+const treeLoaded = ref(false)
+
+// 展平文档树
+const flattenDocuments = (nodes: Array<{ id: string; title: string; children?: Array<{ id: string; title: string; children?: unknown[] }> }>): DocumentItem[] => {
+  const result: DocumentItem[] = []
+  const traverse = (nodes: Array<{ id: string; title: string; children?: unknown[] }>) => {
+    for (const node of nodes) {
+      result.push({ id: node.id, title: node.title })
+      if (node.children && node.children.length > 0) {
+        traverse(node.children as Array<{ id: string; title: string; children?: unknown[] }>)
+      }
+    }
+  }
+  traverse(nodes)
+  return result
+}
+
+// 加载文档树
+const loadDocumentTree = async () => {
+  const baseId = route.params.baseId as string
+  if (!baseId || treeLoaded.value) return
+
+  try {
+    const tree = await kbApi.document.getTree(baseId)
+    allDocuments.value = flattenDocuments(tree)
+    treeLoaded.value = true
+  } catch (error) {
+    console.error('加载文档树失败:', error)
+  }
+}
+
+// 初始化时加载文档树
+onMounted(() => {
+  loadDocumentTree()
+})
+
 const searchDocuments = async (keyword: string) => {
   if (!keyword || keyword.trim().length === 0) {
     items.value = []
     return
   }
 
+  // 确保文档树已加载
+  if (!treeLoaded.value) {
+    await loadDocumentTree()
+  }
+
   loading.value = true
   try {
-    const baseId = route.params.baseId as string
-    if (!baseId) {
-      items.value = []
-      return
-    }
+    const searchText = keyword.trim().toLowerCase()
+    // 在本地文档列表中过滤匹配
+    const matched = allDocuments.value
+      .filter(doc => doc.title.toLowerCase().includes(searchText))
+      .slice(0, 10) // 最多显示10条
 
-    const result = await kbApi.document.search(baseId, keyword.trim())
-    items.value = result.list.map((item: Record<string, unknown>) => ({
-      id: (item.document as Record<string, unknown>)?.id as string || item.id as string,
-      title: (item.document as Record<string, unknown>)?.title as string || item.title as string,
-      summary: (item.document as Record<string, unknown>)?.summary as string || item.summary as string,
-    }))
+    items.value = matched
   } catch (error) {
     console.error('搜索文档失败:', error)
     items.value = []

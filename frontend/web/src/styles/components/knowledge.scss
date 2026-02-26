@@ -947,76 +947,108 @@
   }
 }
 
-// ===== 代码块样式 - 高级浅色主题 =====
+// ===== 代码块样式 - 字节系极简风格 =====
 .code-block-wrapper {
   position: relative;
-  border-radius: 12px;
-  overflow: hidden;
+  border-radius: 8px;
+  overflow: visible;
   margin: 16px 0;
-  background: #fafafa;
-  border: 1px solid #e5e5e5;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  background: #ffffff;
+  border: 1px solid #f0f0f0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: border-color 0.15s ease;
+
+  &:hover {
+    border-color: #e0e0e0;
+  }
+
+  // 折叠状态
+  &.is-collapsed {
+    border-radius: 8px;
+    
+    .code-block-pre {
+      display: none;
+    }
+  }
 }
 
-.code-block-header {
+// 工具栏 - 固定显示，更灰一些
+.code-block-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
-  background: linear-gradient(180deg, #f5f5f5 0%, #eeeeee 100%);
-  border-bottom: 1px solid #e5e5e5;
+  padding: 6px 12px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+// 左侧区域：折叠 + 语言
+.code-block-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+// 折叠按钮
+.code-block-collapse {
+  padding: 2px 6px;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  color: #adb5bd;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: #495057;
+  }
 }
 
 .code-block-lang {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   position: relative;
-}
-
-.code-block-lang-icon {
-  font-size: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .code-block-lang-current {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
+  padding: 3px 8px;
   background: rgba(0, 0, 0, 0.04);
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
+  font-size: 12px;
+  color: #868e96;
   transition: all 0.15s ease;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   &:hover {
     background: rgba(0, 0, 0, 0.08);
+    color: #495057;
   }
-}
-
-.code-block-lang-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #333;
 }
 
 .code-block-lang-arrow {
   font-size: 10px;
-  color: #888;
+  color: #adb5bd;
+  margin-left: 4px;
 }
 
+// Dropdown - Command Menu 风格
 .code-block-dropdown {
   position: absolute;
   top: 100%;
   left: 0;
   margin-top: 4px;
-  min-width: 160px;
+  min-width: 140px;
   background: #fff;
-  border: 1px solid #e5e5e5;
-  border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
-  z-index: 100;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  z-index: 9999;
   overflow: hidden;
   animation: dropdownFadeIn 0.15s ease;
 }
@@ -1024,7 +1056,7 @@
 @keyframes dropdownFadeIn {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-4px);
   }
   to {
     opacity: 1;
@@ -1039,109 +1071,111 @@
 }
 
 .code-block-dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 6px;
+  padding: 8px 12px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: background 0.1s ease;
+  font-size: 13px;
+  color: #868e96;
+  transition: all 0.1s ease;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   &:hover {
-    background: #f5f5f5;
+    background: #f8f9fa;
+    color: #495057;
   }
 
   &.active {
-    background: #f0f7ff;
+    background: #e7f5ff;
+    color: #339af0;
+    font-weight: 500;
   }
 }
 
-.code-block-dropdown-item-icon {
-  font-size: 14px;
-}
-
-.code-block-dropdown-item-label {
-  flex: 1;
-  font-size: 13px;
-  color: #333;
-}
-
-.code-block-dropdown-item-check {
-  font-size: 12px;
-  color: #0066ff;
-  font-weight: 600;
-}
-
+// 复制按钮 - 极简风格
 .code-block-copy {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  color: #666;
+  padding: 3px 10px;
+  background: transparent;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  color: #868e96;
   font-size: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-weight: 500;
 
   &:hover {
-    background: #f5f5f5;
-    color: #333;
-    border-color: #ccc;
+    background: #f8f9fa;
+    color: #495057;
+    border-color: #ced4da;
   }
-}
-
-.code-block-copy-icon {
-  font-size: 12px;
 }
 
 .code-block-pre {
   margin: 0 !important;
-  padding: 16px 20px !important;
+  padding: 16px !important;
   overflow-x: auto;
-  background: #fafafa;
-  border-radius: 0 0 12px 12px;
+  background: #fafbfc;
+  border-radius: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+
+  // 优化滚动条
+  &::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #e8e8e8;
+    border-radius: 4px;
+
+    &:hover {
+      background: #dcdcdc;
+    }
+  }
 
   code {
-    font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', Consolas, monospace;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
     font-size: 13px;
-    line-height: 1.65;
-    color: #24292e;
+    line-height: 1.7;
+    color: #6b6b6b;
+    tab-size: 2;
+    caret-color: #6b6b6b;
+    white-space: pre;
   }
 }
 
-// 语法高亮 - GitHub 风格浅色主题
+// 语法高亮 - 柔和浅色主题
 .code-block-pre code {
-  .hljs-keyword { color: #d73a49; font-weight: 600; }
-  .hljs-built_in { color: #005cc5; }
-  .hljs-type { color: #6f42c1; }
-  .hljs-literal { color: #005cc5; }
-  .hljs-number { color: #005cc5; }
-  .hljs-string { color: #032f62; }
-  .hljs-symbol { color: #005cc5; }
-  .hljs-regexp { color: #e36209; }
-  .hljs-title { color: #6f42c1; }
-  .hljs-function { color: #6f42c1; }
-  .hljs-class { color: #6f42c1; }
-  .hljs-params { color: #24292e; }
-  .hljs-comment { color: #6a737d; font-style: italic; }
-  .hljs-doctag { color: #22863a; }
-  .hljs-meta { color: #6f42c1; }
-  .hljs-attr { color: #005cc5; }
-  .hljs-attribute { color: #005cc5; }
-  .hljs-variable { color: #e36209; }
-  .hljs-template-variable { color: #e36209; }
-  .hljs-tag { color: #22863a; }
-  .hljs-name { color: #22863a; }
-  .hljs-selector-tag { color: #22863a; }
-  .hljs-selector-id { color: #6f42c1; }
-  .hljs-selector-class { color: #6f42c1; }
-  .hljs-addition { color: #22863a; background: rgba(46, 160, 67, 0.1); }
-  .hljs-deletion { color: #cb2431; background: rgba(203, 36, 49, 0.1); }
+  .hljs-keyword { color: #d35d6e; font-weight: 600; }
+  .hljs-built_in { color: #4a90d9; }
+  .hljs-type { color: #8e6bb3; }
+  .hljs-literal { color: #4a90d9; }
+  .hljs-number { color: #4a90d9; }
+  .hljs-string { color: #5a8a6b; }
+  .hljs-symbol { color: #4a90d9; }
+  .hljs-regexp { color: #d98c4f; }
+  .hljs-title { color: #8e6bb3; }
+  .hljs-function { color: #8e6bb3; }
+  .hljs-class { color: #8e6bb3; }
+  .hljs-params { color: #6b6b6b; }
+  .hljs-comment { color: #9e9e9e; font-style: italic; }
+  .hljs-doctag { color: #5a8a6b; }
+  .hljs-meta { color: #8e6bb3; }
+  .hljs-attr { color: #4a90d9; }
+  .hljs-attribute { color: #4a90d9; }
+  .hljs-variable { color: #d98c4f; }
+  .hljs-template-variable { color: #d98c4f; }
+  .hljs-tag { color: #5a8a6b; }
+  .hljs-name { color: #5a8a6b; }
+  .hljs-selector-tag { color: #5a8a6b; }
+  .hljs-selector-id { color: #8e6bb3; }
+  .hljs-selector-class { color: #8e6bb3; }
+  .hljs-addition { color: #5a8a6b; background: rgba(46, 160, 67, 0.08); }
+  .hljs-deletion { color: #c75050; background: rgba(203, 36, 49, 0.08); }
   .hljs-emphasis { font-style: italic; }
   .hljs-strong { font-weight: bold; }
 }

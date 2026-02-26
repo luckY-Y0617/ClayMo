@@ -922,8 +922,8 @@ defineExpose({
 }
 
 :deep(.ProseMirror pre) {
-  background: rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.04);
   border-radius: 8px;
   padding: 1.2em 1.5em;
   margin: 1.5em 0;
@@ -936,7 +936,7 @@ defineExpose({
   background: transparent;
   padding: 0;
   color: inherit;
-  font-family: inherit;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 1em;
   line-height: inherit;
   white-space: pre-wrap;
@@ -1279,6 +1279,7 @@ defineExpose({
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   transform: translateY(-1px);
 }
+
 
 /* ======== 响应式设计 ======== */
 
