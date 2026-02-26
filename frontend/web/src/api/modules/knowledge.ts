@@ -85,17 +85,17 @@ export interface KbContext {
 }
 
 /** 文档节点 */
-export interface DocumentNode {
-  id: string
-  title: string
-  type: DocumentType
-  parentId?: string | null
-  knowledgeBaseId: string
-  order?: number
-  creationTime?: string
-  lastModificationTime?: string
-  children?: DocumentNode[]
-}
+  export interface DocumentNode {
+    id: string
+    title: string
+    type: number
+    parentId?: string | null
+    knowledgeBaseId: string
+    order?: number
+    creationTime?: string
+    lastModificationTime?: string
+    children?: DocumentNode[]
+  }
 
 /** 文档详情 */
 export interface DocumentDetail extends DocumentNode {
@@ -109,13 +109,13 @@ export interface DocumentDetail extends DocumentNode {
 }
 
 /** 文档创建参数 */
-export interface DocumentCreateInput {
-  knowledgeBaseId?: string
-  parentId?: string | null
-  title: string
-  type?: DocumentType
-  initialContentJson?: string | null
-}
+  export interface DocumentCreateInput {
+    knowledgeBaseId?: string
+    parentId?: string | null
+    title: string
+    type?: number
+    initialContentJson?: string | null
+  }
 
 /** 文档重命名参数 */
 export interface DocumentRenameInput {
@@ -314,7 +314,7 @@ export const kbApi = {
           knowledgeBaseId: data.knowledgeBaseId || baseId,
           parentId: data.parentId || null,
           title: data.title,
-          type: data.type || DocumentType.Normal,
+            type: data.type || 0,
           initialContentJson: data.initialContentJson || null,
         }
       )

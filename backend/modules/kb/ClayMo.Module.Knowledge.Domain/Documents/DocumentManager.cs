@@ -32,6 +32,17 @@ public class DocumentManager : DomainService
     {
         Check.NotNullOrWhiteSpace(title, nameof(title));
 
+        // 验证父节点：文档(type=0)不能作为其他文档的父节点，只能在文件夹(type=1)或根目录下创建
+        if (parentId.HasValue)
+        {
+            var parentDoc = await _documentRepository.GetAsync(parentId.Value, cancellationToken: cancellationToken);
+            if (parentDoc != null && !parentDoc.IsDeleted && parentDoc.Type != DocumentType.Folder)
+            {
+                throw new BusinessException("Document:CannotCreateUnderDocument")
+                    .WithData("Message", "文档下面不能创建文档，只能在文件夹或根目录下创建");
+            }
+        }
+
         var order = await _documentRepository.GetNextOrderAsync(
             knowledgeBaseId,
             parentId,

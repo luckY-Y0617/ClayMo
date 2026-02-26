@@ -8,7 +8,15 @@
       @contextmenu.stop.prevent="handleContextMenu"
     >
       <el-icon
-        v-if="hasChildren"
+        v-if="isFolder"
+        class="expand-icon"
+        :class="{ expanded: isExpanded }"
+        @click.stop="toggleExpand"
+      >
+        <ArrowRight />
+      </el-icon>
+      <el-icon
+        v-else-if="hasChildren"
         class="expand-icon"
         :class="{ expanded: isExpanded }"
         @click.stop="toggleExpand"
@@ -16,7 +24,15 @@
         <ArrowRight />
       </el-icon>
       <div v-else class="expand-placeholder"></div>
-      <div class="node-icon-wrapper">
+      <!-- 文件夹图标 -->
+      <div v-if="isFolder" class="node-icon-wrapper folder-icon-wrapper">
+        <el-icon class="folder-icon">
+          <FolderOpened v-if="isExpanded && hasChildren" />
+          <Folder v-else />
+        </el-icon>
+      </div>
+      <!-- 文档图标 -->
+      <div v-else class="node-icon-wrapper">
         <el-icon class="doc-icon"><Document /></el-icon>
       </div>
       <span class="node-title">{{ node.title }}</span>
@@ -46,12 +62,13 @@
 
 <script setup lang="ts">
 import { computed, inject } from 'vue'
-import { ArrowRight, Document } from '@element-plus/icons-vue'
+import { ArrowRight, Document, Folder, FolderOpened } from '@element-plus/icons-vue'
 import { useDocumentTreeStore } from '@/stores/documentTree'
 
 interface TreeNodeData {
   id: string
   title: string
+  type?: number
   children?: TreeNodeData[]
 }
 
@@ -85,6 +102,12 @@ const hasChildren = computed(() => {
   return props.node.children && props.node.children.length > 0
 })
 
+// 判断是否为文件夹类型 (type: 1 = Folder, 0 = Normal)
+const isFolder = computed(() => {
+  console.log("??????")
+  return props.node.type === 1
+})
+
 const isExpanded = computed(() => {
   return props.expandedKeys.includes(props.node.id)
 })
@@ -94,6 +117,7 @@ const handleSelect = () => {
 }
 
 const toggleExpand = () => {
+  console.log("toggleExpand")
   if (props.kbId) {
     documentTreeStore.toggleExpand(props.kbId, props.node.id)
   }
@@ -191,6 +215,22 @@ const handleContextMenu = (event: MouseEvent) => {
   color: #1D4ED8;
 }
 
+/* 文件夹图标样式 */
+.folder-icon {
+  font-size: 16px;
+  color: #e6a23c;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.node-item:hover .folder-icon {
+  color: #d48806;
+  transform: scale(1.1);
+}
+
+.node-item.active .folder-icon {
+  color: #cf9236;
+}
+
 .node-title {
   flex: 1;
   font-size: 15px;
@@ -252,4 +292,3 @@ const handleContextMenu = (event: MouseEvent) => {
   max-height: 0;
 }
 </style>
-

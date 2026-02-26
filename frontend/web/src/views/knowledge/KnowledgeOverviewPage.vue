@@ -142,16 +142,17 @@
             </div>
 
             <div v-else class="kb-tree-wrapper">
-              <DocumentTreeNode
-                v-for="doc in documentTree"
-                :key="doc.id"
-                :node="doc"
-                :selected-key="selectedDocId"
-                :expanded-keys="expandedKeys"
-                :kb-id="currentBaseId"
-                :depth="0"
-                @select="handleDocSelect"
-              />
+                <DocumentTreeNode
+                  v-for="doc in documentTree"
+                  :key="doc.id"
+                  :node="doc"
+                  :selected-key="selectedDocId"
+                  :expanded-keys="expandedKeys"
+                  :kb-id="currentBaseId"
+                  :depth="0"
+                  @select="handleDocSelect"
+                  @update:expanded-keys="expandedKeys = $event"
+                />
             </div>
           </div>
         </div>
@@ -840,22 +841,27 @@ const handleCreateBaseSubmit = async (payload: {
 
 // 创建文档
 const handleCreateDocSubmit = async (payload: {
-  baseId: string
-  title: string
-  parentId: string
-}) => {
-  try {
-    createDocSubmitting.value = true
+    baseId: string
+    title: string
+    parentId: string
+    type: number
+  }) => {
+    try {
+      createDocSubmitting.value = true
+      const docType = payload.type
+      const isFolder = payload.type === 1
     const newDoc = await kbApi.document.create(currentBaseId.value, {
       title: payload.title,
       parentId: payload.parentId || undefined,
+      type: docType,
     }) as unknown as DocumentNode
-    ElMessage.success('文档创建成功')
+    ElMessage.success(isFolder ? '文件夹创建成功' : '文档创建成功')
     showCreateDocModal.value = false
 
-    // 刷新文档树并跳转到编辑
+    // 刷新文档树
     await loadDocumentTree(currentBaseId.value)
-    if (newDoc?.id) {
+    // 文件夹类型不跳转到编辑页面
+    if (!isFolder && newDoc?.id) {
       router.push(`/kb/${currentBaseId.value}/edit/${newDoc.id}`)
     }
   } catch (error: unknown) {

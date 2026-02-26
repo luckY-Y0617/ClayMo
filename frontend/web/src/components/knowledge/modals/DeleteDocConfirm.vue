@@ -11,14 +11,6 @@
     <!-- 内容 -->
     <template #body>
       <div class="delete-content">
-        <div class="warning-icon">
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-            <circle cx="24" cy="24" r="20" fill="#fef2f2"/>
-            <path d="M24 14V26M24 32H24.01" stroke="#f53f3f" stroke-width="3" stroke-linecap="round"/>
-            <path d="M32 24C32 28.4183 28.4183 32 24 32C19.5817 32 16 28.4183 16 24C16 19.5817 19.5817 16 24 16C28.4183 16 32 19.5817 32 24Z" stroke="#f53f3f" stroke-width="2"/>
-          </svg>
-        </div>
-        
         <p class="warning-text">
           确定要删除文档
           <strong>「{{ title }}」</strong>
@@ -114,10 +106,6 @@ const handleConfirm = () => {
   align-items: center;
   text-align: center;
   padding: 10px 0;
-}
-
-.warning-icon {
-  margin-bottom: 16px;
 }
 
 .warning-text {

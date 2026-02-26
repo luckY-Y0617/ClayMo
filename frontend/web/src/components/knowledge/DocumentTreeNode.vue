@@ -60,6 +60,7 @@
           :kb-id="kbId"
           :depth="depth + 1"
           @select="$emit('select', $event)"
+          @update:expanded-keys="$emit('update:expandedKeys', $event)"
         />
       </div>
     </transition>
@@ -69,7 +70,6 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue'
 import { ArrowRight, Document, Folder, FolderOpened } from '@element-plus/icons-vue'
-import { DocumentType } from '@/api/modules/knowledge'
 import type { DocumentNode } from '@/api/modules/knowledge'
 import { useDocumentTreeStore } from '@/stores'
 
@@ -95,11 +95,12 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  select: [docId: string]
-  create: [data: { parentId: string }]
-  rename: [data: { id: string; title: string }]
-  delete: [data: { id: string; title: string; hasChildren: boolean }]
-}>()
+    select: [docId: string]
+    create: [data: { parentId: string }]
+    rename: [data: { id: string; title: string }]
+    delete: [data: { id: string; title: string; hasChildren: boolean }]
+    'update:expandedKeys': [keys: string[]]
+  }>()
 
 // 注入右键菜单函数
 const openContextMenu = inject<((event: MouseEvent, node: DocumentNode) => void) | null>('openContextMenu', null)
@@ -110,8 +111,9 @@ const hasChildren = computed(() => {
   return props.node.children && props.node.children.length > 0
 })
 
+// 判断是否为文件夹类型 (type: 1 = Folder, 0 = Normal)
 const isFolder = computed(() => {
-  return props.node.type === DocumentType.Folder
+  return props.node.type === 1
 })
 
 const isExpanded = computed(() => {
@@ -123,6 +125,22 @@ const handleSelect = () => {
 }
 
 const toggleExpand = () => {
+  if (!props.expandedKeys) return
+
+  const currentKeys = [...props.expandedKeys]
+  const nodeId = props.node.id
+
+  if (currentKeys.includes(nodeId)) {
+    // 收起：移除该节点
+    const index = currentKeys.indexOf(nodeId)
+    currentKeys.splice(index, 1)
+  } else {
+    // 展开：添加该节点
+    currentKeys.push(nodeId)
+  }
+
+  emit('update:expandedKeys', currentKeys)
+
   if (props.kbId) {
     documentTreeStore.toggleExpand(props.kbId, props.node.id)
   }

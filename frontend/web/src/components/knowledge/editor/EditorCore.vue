@@ -234,6 +234,7 @@ const editorSession = inject<EditorSession>('editorSession')
 const lastDocId = ref<string | null>(null)
 const orphanCommentIds = ref(new Set<string>())
 let isRenderingCommentMarks = false
+let pendingRenderMarksTimeout: ReturnType<typeof setTimeout> | null = null
 
 // 评论预览状态
 const commentPreviewTooltip = ref<Position | null>(null)
@@ -386,16 +387,19 @@ const mergeCommentMarkOnTr = (
 }
 
 const renderCommentMarks = () => {
-  if (!editor.value) return
+  const ed = editor.value
+  if (!ed || ed.isDestroyed) return
   if (isRenderingCommentMarks) return
   isRenderingCommentMarks = true
 
   try {
-    const view = editor.value.view
-    let state = view.state
+    const view = ed.view
+    // Get fresh state reference BEFORE creating transaction to avoid mismatched transaction
+    const state = view.state
     const markType = state.schema.marks.commentMark
     if (!markType) return
 
+    // Create transaction from the current state
     const tr = state.tr
     tr.removeMark(0, state.doc.content.size, markType)
 
@@ -406,7 +410,7 @@ const renderCommentMarks = () => {
       if (!c?.id || !c.position) continue
 
       if (c.position.type === 'range') {
-        const loc = locateRangeAnchor(editor.value, c.position as RangeAnchorPosition)
+        const loc = locateRangeAnchor(ed, c.position as RangeAnchorPosition)
         if (!loc) {
           orphan.add(c.id)
           continue
@@ -417,15 +421,25 @@ const renderCommentMarks = () => {
     }
 
     orphanCommentIds.value = orphan
-    // Get fresh state reference before dispatch to avoid mismatched transaction
-    state = view.state
+    // Double-check editor is still valid before dispatching
+    if (!editor.value || editor.value.isDestroyed) return
     view.dispatch(tr)
   } finally {
     isRenderingCommentMarks = false
   }
 }
 
-const scheduleRenderMarks = (ms: number) => setTimeout(() => renderCommentMarks(), ms)
+const scheduleRenderMarks = (ms: number) => {
+  // Cancel any pending timeout to avoid stacking timeouts
+  if (pendingRenderMarksTimeout) {
+    clearTimeout(pendingRenderMarksTimeout)
+    pendingRenderMarksTimeout = null
+  }
+  pendingRenderMarksTimeout = setTimeout(() => {
+    pendingRenderMarksTimeout = null
+    renderCommentMarks()
+  }, ms)
+}
 
 // 重置选区
 const resetSelectionToStart = () => {

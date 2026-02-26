@@ -6,7 +6,7 @@
   >
     <!-- 头部 -->
     <template #header>
-      <h3 class="modal-title">新建{{ form.type === 'Folder' ? '文件夹' : '文档' }}</h3>
+      <h3 class="modal-title">新建{{ form.type === 1 ? '文件夹' : '文档' }}</h3>
       <button class="modal-close" @click="handleClose">
         <el-icon :size="16"><Close /></el-icon>
       </button>
@@ -41,8 +41,8 @@
             <button
               type="button"
               class="type-btn"
-              :class="{ active: form.type === 'Normal' }"
-              @click="form.type = 'Normal'"
+              :class="{ active: form.type === 0 }"
+              @click="form.type = 0"
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M3 2h6l4 4v8a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.5"/>
@@ -53,8 +53,8 @@
             <button
               type="button"
               class="type-btn"
-              :class="{ active: form.type === 'Folder' }"
-              @click="form.type = 'Folder'"
+              :class="{ active: form.type === 1 }"
+              @click="form.type = 1"
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M2 4a1 1 0 0 1 1-1h3l1 1h5a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4z" stroke="currentColor" stroke-width="1.5"/>
@@ -174,7 +174,7 @@ interface Props {
   parentOptions?: ParentOption[]
   defaultBaseId?: string
   defaultParentId?: string
-  defaultType?: string
+    defaultType?: number
   submitting?: boolean
 }
 
@@ -183,22 +183,22 @@ const props = withDefaults(defineProps<Props>(), {
   parentOptions: () => [],
   defaultBaseId: '',
   defaultParentId: '',
-  defaultType: 'Normal',
+    defaultType: 0,
   submitting: false,
 })
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  submit: [payload: { baseId: string; title: string; parentId: string; type: string }]
+  submit: [payload: { baseId: string; title: string; parentId: string; type: number }]
 }>()
 
 // Form State
 const form = reactive({
-  baseId: '',
-  title: '',
-  parentId: '',
-  type: 'Normal',
-})
+    baseId: '',
+    title: '',
+    parentId: '',
+    type: 0, // 0 = Normal, 1 = Folder
+  })
 
 const titleError = ref('')
 
@@ -317,7 +317,7 @@ const resetForm = () => {
   form.baseId = props.defaultBaseId || ''
   form.title = ''
   form.parentId = props.defaultParentId || ''
-  form.type = props.defaultType || 'Normal'
+    form.type = props.defaultType || 0
   titleError.value = ''
   closeAllDropdowns()
 }

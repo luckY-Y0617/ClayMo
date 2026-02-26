@@ -25,8 +25,8 @@
           />
         </svg>
       </span>
-      <span v-else class="expand-placeholder"></span>
-      <span class="tree-icon">📄</span>
+        <span v-else class="expand-placeholder"></span>
+      <span class="tree-icon">{{ isFolder ? '📁' : '📄' }}</span>
       <span class="tree-text">{{ node.title }}</span>
     </button>
 
@@ -52,6 +52,7 @@ import { ref, computed } from 'vue'
 interface DocumentNode {
   id: string
   title: string
+  type?: number
   children?: DocumentNode[]
 }
 
@@ -72,6 +73,11 @@ const isExpanded = ref(false)
 
 const hasChildren = computed(() => {
   return props.node.children && props.node.children.length > 0
+})
+
+// 判断是否为文件夹类型 (type: 1 = Folder, 0 = Normal)
+const isFolder = computed(() => {
+  return props.node.type === 1
 })
 
 const isDisabled = computed(() => {

@@ -40,6 +40,7 @@ export type {
   KbMember,
   KbCapabilities,
   Tag,
+  KbUpdateInput,
 } from './modules/knowledge'
 
 export type {

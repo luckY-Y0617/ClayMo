@@ -90,6 +90,7 @@
 
     <!-- 移动文档弹窗 -->
     <MoveDocModal
+      ref="moveModalRef"
       v-model="moveModalVisible"
       :doc-id="moveDocId"
       :doc-title="moveDocTitle"
@@ -97,6 +98,7 @@
       :knowledge-bases="bases"
       :submitting="moving"
       @submit="handleMoveSubmit"
+      @load-tree="handleLoadMoveTree"
     />
 
     <!-- 删除文档确认弹窗 -->
@@ -154,6 +156,9 @@ import type { EditorDocument } from '@/types/editor'
 interface DocumentNode {
   id: string
   title: string
+  type: number  // 0 = 文档, 1 = 文件夹
+  knowledgeBaseId: string
+  parentId?: string | null
   children?: DocumentNode[]
   order?: number
 }
@@ -173,6 +178,7 @@ interface EditorSession {
 
 interface Props {
   collapsed?: boolean
+  readonly?: boolean
   canCreateDoc?: boolean
   canDeleteDoc?: boolean
   canMoveDoc?: boolean
@@ -180,6 +186,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   collapsed: false,
+  readonly: false,
   canCreateDoc: true,
   canDeleteDoc: true,
   canMoveDoc: true,
@@ -202,7 +209,7 @@ const outlineExpandedKeys = ref(new Set<string>())
 const activeHeadingId = ref<string | null>(null)
 
 const documents = computed<DocumentNode[]>(() => 
-  documentTreeStore.getDocuments(currentBaseId.value) as DocumentNode[]
+  currentBaseId.value ? documentTreeStore.getDocuments(currentBaseId.value) as DocumentNode[] : []
 )
 
 // 转换文档树为父文档选项格式
@@ -213,17 +220,21 @@ interface ParentOption {
 }
 
 const parentOptions = computed<ParentOption[]>(() => {
+  // 只包含文件夹(type=1)作为父选项，文档下面不能建文档
   const convertToOptions = (docs: DocumentNode[]): ParentOption[] => {
-    return docs.map(doc => ({
-      label: doc.title,
-      value: doc.id,
-      children: doc.children ? convertToOptions(doc.children) : undefined
-    })).filter(doc => doc.label) // 过滤掉空标题
+    return docs
+      .filter(doc => doc.type === 1) // 只保留文件夹
+      .map(doc => ({
+        label: doc.title,
+        value: doc.id,
+        children: doc.children ? convertToOptions(doc.children) : undefined
+      }))
+      .filter(doc => doc.label)
   }
   return convertToOptions(documents.value)
 })
 
-const selectedKey = computed(() => documentTreeStore.getSelectedKey(currentBaseId.value))
+const selectedKey = computed(() => currentBaseId.value ? documentTreeStore.getSelectedKey(currentBaseId.value) : null)
 const expandedKeys = computed(() => currentBaseId.value ? documentTreeStore.getExpandedKeys(currentBaseId.value) : [])
 const bases = computed(() => kbWorkspaceStore.bases)
 
@@ -235,7 +246,7 @@ const currentBaseName = computed(() => {
 
 const createModalVisible = ref(false)
 const createParentId = ref<string | null>(null)
-const createDocType = ref<string>('Normal')
+const createDocType = ref<number>(0)
 const creating = ref(false)
 
 // 重命名相关
@@ -246,6 +257,7 @@ const renaming = ref(false)
 
 // 移动相关
 const moveModalVisible = ref(false)
+const moveModalRef = ref<any>(null)
 const moveDocId = ref<string>('')
 const moveDocTitle = ref<string>('')
 const moving = ref(false)
@@ -273,11 +285,15 @@ interface MenuItem {
 }
 
 const menuItems = computed((): MenuItem[] => {
+  const node = contextMenu.node
+  const isFolder = node?.type === 1
+  
   const items: MenuItem[] = [
     { key: 'open', label: '打开文档', shortcut: 'Enter' },
   ]
 
-  if (props.canCreateDoc) {
+  // 只有文件夹才能新建子文档，文档下面不能建文档
+  if (props.canCreateDoc && isFolder) {
     items.push({ key: 'create', label: '新建', shortcut: 'Ctrl+Enter' })
   }
 
@@ -338,7 +354,7 @@ const loadDocuments = async (baseId: string) => {
   try {
     documentTreeStore.setLoading(baseId, true)
     const docs = await kbApi.document.getTree(baseId)
-    documentTreeStore.setDocuments(baseId, docs)
+    documentTreeStore.setDocuments(baseId, docs.data)
   } catch (error) {
     console.error('加载文档树失败:', error)
   } finally {
@@ -359,11 +375,11 @@ const handleGoToOverview = () => {
   router.push(`/kb/${currentBaseId.value}/overview`)
 }
 
-const openCreateModal = (opts: { parentId?: string; type?: string }) => {
-  createParentId.value = opts.parentId || null
-  createDocType.value = opts.type || 'Normal'
-  createModalVisible.value = true
-}
+const openCreateModal = (opts: { parentId?: string; type?: number }) => {
+    createParentId.value = opts.parentId || null
+    createDocType.value = opts.type || 0
+    createModalVisible.value = true
+  }
 
 const openRenameModal = (opts: { id: string; title: string }) => {
   renameDocId.value = opts.id
@@ -377,6 +393,22 @@ const openMoveModal = (opts: { id: string; title: string }) => {
   moveModalVisible.value = true
 }
 
+// 处理移动弹窗中的加载目录树事件
+const handleLoadMoveTree = async (kbId: string) => {
+  if (!kbId) return
+
+  try {
+    const tree = await kbApi.document.getTree(kbId)
+    // 调用 MoveDocModal 暴露的方法设置文档树
+    moveModalRef.value?.setDocumentTree(tree)
+  } catch (error) {
+    console.error('加载移动目录树失败:', error)
+    ElMessage.error('加载目录树失败')
+    // 即使失败也要关闭 loading，否则会一直转圈
+    moveModalRef.value?.setDocumentTree([])
+  }
+}
+
 const openDeleteModal = (_opts: { id: string; title: string; hasChildren?: boolean }) => {
   deleteDocId.value = _opts.id
   deleteDocTitle.value = _opts.title
@@ -384,11 +416,12 @@ const openDeleteModal = (_opts: { id: string; title: string; hasChildren?: boole
   deleteModalVisible.value = true
 }
 
-const handleCreateSubmit = async (data: { 
-  baseId?: string
-  title: string
-  parentId?: string | null
-}) => {
+const handleCreateSubmit = async (data: {
+    baseId?: string
+    title: string
+    parentId?: string | null
+    type: number
+  }) => {
   const validTitle = data.title?.trim()
   if (!validTitle) {
     ElMessage.warning('请输入标题')
@@ -403,8 +436,8 @@ const handleCreateSubmit = async (data: {
   
   creating.value = true
   try {
-    const docType = createDocType.value === 'Folder' ? 1 : 0
-    const isFolder = createDocType.value === 'Folder'
+    const docType = data.type
+    const isFolder = data.type === 1
 
     const newDoc = await kbApi.document.create(targetBase, {
       title: validTitle,
@@ -416,13 +449,13 @@ const handleCreateSubmit = async (data: {
 
     createModalVisible.value = false
     createParentId.value = null
-    createDocType.value = 'Normal'
+    createDocType.value = 0
 
     // 文件夹类型不跳转到编辑页面
     if (isFolder) {
       ElMessage.success('文件夹创建成功')
     } else {
-      router.push(`/kb/${targetBase}/edit/${newDoc.id}`)
+      router.push(`/kb/${targetBase}/edit/${newDoc.data.id}`)
       ElMessage.success('文档创建成功')
     }
   } catch (error) {
@@ -474,7 +507,7 @@ const handleMoveSubmit = async (data: { targetKbId: string; targetParentId: stri
   moving.value = true
   try {
     await kbApi.document.move(currentBaseId.value, moveDocId.value, {
-      targetKbId: data.targetKbId,
+      targetKnowledgeBaseId: data.targetKbId,
       targetParentId: data.targetParentId,
     })
 
