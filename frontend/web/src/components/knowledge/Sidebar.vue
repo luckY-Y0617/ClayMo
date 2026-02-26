@@ -353,8 +353,8 @@ const loadDocuments = async (baseId: string) => {
 
   try {
     documentTreeStore.setLoading(baseId, true)
-    const docs = await kbApi.document.getTree(baseId)
-    documentTreeStore.setDocuments(baseId, docs.data)
+    const docs = await kbApi.document.getTree(baseId) as unknown as DocumentNode[]
+    documentTreeStore.setDocuments(baseId, docs)
   } catch (error) {
     console.error('加载文档树失败:', error)
   } finally {
@@ -440,10 +440,10 @@ const handleCreateSubmit = async (data: {
     const isFolder = data.type === 1
 
     const newDoc = await kbApi.document.create(targetBase, {
-      title: validTitle,
-      parentId: data.parentId || createParentId.value || null,
-      type: docType,
-    })
+        title: validTitle,
+        parentId: data.parentId || createParentId.value || null,
+        type: docType,
+      }) as unknown as DocumentNode
 
     await loadDocuments(targetBase)
 
@@ -455,7 +455,7 @@ const handleCreateSubmit = async (data: {
     if (isFolder) {
       ElMessage.success('文件夹创建成功')
     } else {
-      router.push(`/kb/${targetBase}/edit/${newDoc.data.id}`)
+      router.push(`/kb/${targetBase}/edit/${(newDoc as DocumentNode).id}`)
       ElMessage.success('文档创建成功')
     }
   } catch (error) {
