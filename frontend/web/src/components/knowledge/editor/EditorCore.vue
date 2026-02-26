@@ -153,7 +153,8 @@ import {
   ImageBlock,
   FileBlock,
   TrailingParagraph,
-  CustomCodeBlock
+  CustomCodeBlock,
+  TabKey
 } from '@/editor/extensions'
 
 // 组件
@@ -316,6 +317,7 @@ const editor = useEditor({
     }),
     CommentMark,
     TrailingParagraph,
+    TabKey,
   ],
   editorProps: {
     attributes: { class: 'prose prose-sm max-w-none focus:outline-none' },

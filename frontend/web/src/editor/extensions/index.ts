@@ -44,3 +44,5 @@ export { default as lowlight } from './lowlight'
 
 export { CustomCodeBlock } from './CustomCodeBlock'
 
+// Tab 键处理
+export { TabKey } from './TabKey'

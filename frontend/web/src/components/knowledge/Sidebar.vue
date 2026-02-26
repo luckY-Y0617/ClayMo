@@ -192,6 +192,10 @@ const props = withDefaults(defineProps<Props>(), {
   canMoveDoc: true,
 })
 
+const emit = defineEmits<{
+  'delete-current-doc': [docId: string]
+}>()
+
 const router = useRouter()
 const route = useRoute()
 
@@ -540,9 +544,9 @@ const handleDeleteConfirm = async (data: { includeChildren: boolean }) => {
 
     await loadDocuments(currentBaseId.value)
 
-    // 如果删除的是当前选中的文档，跳转到概览
+    // 如果删除的是当前选中的文档，触发事件让父组件处理
     if (selectedKey.value === deleteDocId.value) {
-      router.push(`/kb/${currentBaseId.value}/overview`)
+      emit('delete-current-doc', deleteDocId.value)
     }
 
     deleteModalVisible.value = false

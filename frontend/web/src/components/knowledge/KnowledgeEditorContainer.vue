@@ -17,6 +17,7 @@
         :can-delete-doc="canDeleteDoc"
         :can-move-doc="canMoveDoc"
         @toggle-collapse="layout.sidebarCollapsed = !layout.sidebarCollapsed"
+        @delete-current-doc="handleDeleteCurrentDoc"
       />
 
       <!-- 移动端侧边栏切换按钮 -->
@@ -690,6 +691,44 @@ const handleEditorReady = (editor: Editor) => {
     nextTick(() => {
       renderCommentMarks()
     })
+  }
+}
+
+// 处理删除当前文档 - 跳转到其他文档（如果有）或 Overview
+const handleDeleteCurrentDoc = async (_docId: string) => {
+  if (!currentBaseId.value) return
+
+  try {
+    // 重新加载文档树，获取最新数据
+    const treeResponse = await kbApi.document.getTree(currentBaseId.value)
+    const tree = treeResponse as unknown as import('@/api/modules/knowledge').DocumentNode[]
+
+    // 扁平化并找到第一个可编辑的文档
+    const findFirstDoc = (nodes: import('@/api/modules/knowledge').DocumentNode[]): string | null => {
+      for (const node of nodes) {
+        if (node.type === 0 || node.type === 'Document') {
+          return node.id
+        }
+        if (node.children?.length) {
+          const found = findFirstDoc(node.children)
+          if (found) return found
+        }
+      }
+      return null
+    }
+
+    const firstDocId = findFirstDoc(tree)
+    if (firstDocId) {
+      // 跳转到第一个文档
+      router.push(`/kb/${currentBaseId.value}/edit/${firstDocId}`)
+    } else {
+      // 没有其他文档，跳转到 Overview
+      router.push(`/kb/${currentBaseId.value}/overview`)
+    }
+  } catch (error) {
+    console.error('获取文档列表失败:', error)
+    // 出错时跳转到 Overview
+    router.push(`/kb/${currentBaseId.value}/overview`)
   }
 }
 </script>
