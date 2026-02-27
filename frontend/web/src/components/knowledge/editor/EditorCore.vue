@@ -126,6 +126,7 @@ import { ref, onMounted, onBeforeUnmount, watch, watchEffect, computed, inject, 
 import { EditorContent, useEditor, type Editor } from '@tiptap/vue-3'
 import { ElMessage } from 'element-plus'
 import { StarterKit } from '@tiptap/starter-kit'
+import { CustomBulletList, CustomBold } from '@/editor/extensions'
 import { Heading } from '@tiptap/extension-heading'
 import { Underline } from '@tiptap/extension-underline'
 import { TaskList } from '@tiptap/extension-task-list'
@@ -289,9 +290,13 @@ const editor = useEditor({
       codeBlock: false,
       link: false,
       underline: false,
+      bulletList: false, // 禁用默认的 bulletList，使用自定义版本
+      bold: false, // 禁用默认的 bold，使用自定义版本
       // 启用 Markdown 输入规则
       inputRules: true,
     }),
+    CustomBulletList,
+    CustomBold,
     BlockId,
     Heading.configure({ levels: [1, 2, 3, 4, 5, 6] }),
     Underline,

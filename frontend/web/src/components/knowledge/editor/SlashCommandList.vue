@@ -96,13 +96,11 @@ const onKeyDown = ({ event }: KeyDownEvent): boolean => {
   return false
 }
 
-// 滚轮滚动时保持选中项在可视区域
-let wheelTimer: ReturnType<typeof setTimeout> | null = null
+// 滚轮滚动时允许自然滚动，不再强制滚动到选中项
+// 之前的问题：滚轮时会调用 scrollIntoView 与用户操作冲突，导致跳动
 const onWheel = () => {
-  if (wheelTimer) clearTimeout(wheelTimer)
-  wheelTimer = setTimeout(() => {
-    scrollToSelectedItem()
-  }, 50)
+  // 移除自动滚动逻辑，让用户可以自由滚动菜单
+  // 选中项的高亮状态仍然通过键盘上下键保持同步
 }
 
 defineExpose({

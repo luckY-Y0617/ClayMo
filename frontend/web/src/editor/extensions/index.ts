@@ -49,3 +49,9 @@ export { TabKey } from './TabKey'
 
 // Mermaid 图表
 export { MermaidNode } from './MermaidNode'
+
+// 自定义列表（解决列表内加粗问题）
+export { CustomBulletList, type CustomBulletListOptions } from './CustomBulletList'
+
+// 自定义加粗（解决 **text** 两侧必须空格的问题）
+export { CustomBold, type CustomBoldOptions } from './CustomBold'

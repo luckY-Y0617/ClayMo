@@ -158,14 +158,21 @@ import {
     },
   })
   
-  /**
-   * 扩展 CodeBlockLowlight
-   */
-  export const CustomCodeBlock = CodeBlockLowlight.configure({
+/**
+ * 扩展 CodeBlockLowlight
+ */
+export const CustomCodeBlock = CodeBlockLowlight.configure({
     lowlight,
     defaultLanguage: 'plaintext',
+    // 禁用 Markdown 触发（```），避免 hardBreak 冲突
+    // 代码块通过 / 菜单或快捷键插入
   }).extend({
   
+    // 禁用默认的 InputRule，避免 ``` 触发时把 hardBreak 也带进代码块
+    addInputRules() {
+      return []
+    },
+
     addNodeView() {
       return VueNodeViewRenderer(CodeBlockComponent)
     },

@@ -629,11 +629,38 @@ const handleHeadingClick = (heading: Heading) => {
   if (!editorSession?.editor.value) return
 
   const editor = editorSession.editor.value
-  const { pos } = heading
-
-  editor.commands.setTextSelection(pos)
-  editor.commands.scrollIntoView()
-  activeHeadingId.value = heading.id
+  
+  // 尝试通过 ID 查找标题节点位置
+  const { state } = editor
+  let targetPos: number | null = null
+  
+  // 方法1：通过 ID 属性查找（如果标题节点有 blockId）
+  state.doc.descendants((node, pos) => {
+    if (node.type.name.startsWith('heading')) {
+      // 检查节点是否有匹配的 blockId 或位置
+      const nodeId = node.attrs.id || node.attrs.blockId
+      if (nodeId === heading.id || pos === heading.pos) {
+        // 找到标题节点，跳转到节点起始位置
+        targetPos = pos
+        return false // 停止遍历
+      }
+    }
+  })
+  
+  // 方法2：如果方法1失败，使用 heading.pos
+  if (targetPos === null) {
+    targetPos = heading.pos
+  }
+  
+  if (targetPos !== null) {
+    // 设置选区到标题位置
+    editor.commands.setTextSelection(targetPos)
+    editor.commands.scrollIntoView()
+    activeHeadingId.value = heading.id
+    
+    // 确保编辑器获得焦点
+    editor.commands.focus()
+  }
 }
 
 // 监听路由参数 baseId 变化
@@ -777,11 +804,12 @@ onBeforeUnmount(() => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
   padding-right: 0;
   margin-right: -6px;
-  gap: 24px;
+  gap: 16px;
+  /* 确保容器有明确的边界，防止子元素溢出 */
+  min-height: 0;
 }
 
 /* 自定义滚动条 */
@@ -823,6 +851,8 @@ onBeforeUnmount(() => {
 .documents-section {
   flex: 1;
   min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .empty-docs {
@@ -839,9 +869,12 @@ onBeforeUnmount(() => {
 /* 大纲区域 */
 .outline-section {
   flex-shrink: 0;
-  padding-top: 20px;
+  padding-top: 16px;
   border-top: 1px solid #E8E8E8;
   background: transparent;
+  /* 大纲区域固定高度限制，超出可以滚动 */
+  max-height: 200px;
+  overflow: hidden;
 }
 
 .outline-section .section-title {
@@ -857,10 +890,10 @@ onBeforeUnmount(() => {
 }
 
 .outline-content {
-  max-height: 300px;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 0;
+  max-height: 140px;
 }
 
 /* 大纲内容滚动条 */
