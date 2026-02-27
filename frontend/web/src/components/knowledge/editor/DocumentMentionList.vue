@@ -1,5 +1,5 @@
 <template>
-  <div class="document-mention-list" v-if="items.length">
+  <div class="document-mention-list" v-if="items.length" ref="menuRef" @wheel="onWheel">
     <button
       v-for="(item, index) in items"
       :key="item.id"
@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { kbApi } from '@/api'
 import { useRoute } from 'vue-router'
 import type { MentionItem } from '@/editor/extensions/AtMention'
@@ -48,6 +48,20 @@ const route = useRoute()
 const items = ref<DocumentItem[]>([])
 const loading = ref(false)
 const selectedIndex = ref(0)
+const menuRef = ref<HTMLElement | null>(null)
+
+// 滚动到选中的项目
+const scrollToSelectedItem = () => {
+  if (!menuRef.value) return
+  const buttons = menuRef.value.querySelectorAll('.mention-item')
+  const currentItem = buttons[selectedIndex.value] as HTMLElement
+  if (currentItem) {
+    currentItem.scrollIntoView({
+      block: 'nearest',
+      behavior: 'smooth',
+    })
+  }
+}
 
 // 缓存文档树，避免每次搜索都请求
 const allDocuments = ref<DocumentItem[]>([])
@@ -145,11 +159,13 @@ const onKeyDown = ({ event }: KeyDownEvent): boolean => {
   }
   if (event.key === 'ArrowDown') {
     selectedIndex.value = (selectedIndex.value + 1) % items.value.length
+    scrollToSelectedItem()
     return true
   }
   if (event.key === 'ArrowUp') {
     selectedIndex.value =
       (selectedIndex.value + items.value.length - 1) % items.value.length
+    scrollToSelectedItem()
     return true
   }
   if (event.key === 'Enter') {
@@ -157,6 +173,15 @@ const onKeyDown = ({ event }: KeyDownEvent): boolean => {
     return true
   }
   return false
+}
+
+// 滚轮滚动时保持选中项在可视区域
+let wheelTimer: ReturnType<typeof setTimeout> | null = null
+const onWheel = () => {
+  if (wheelTimer) clearTimeout(wheelTimer)
+  wheelTimer = setTimeout(() => {
+    scrollToSelectedItem()
+  }, 50)
 }
 
 defineExpose({
@@ -242,6 +267,12 @@ defineExpose({
   font-size: 13px;
   color: var(--text-secondary, #666);
   text-align: center;
+  background: #fff;
+  border: 1px solid var(--border-color, #e8e8e8);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,0.1));
+  width: 320px;
+  max-width: 90vw;
 }
 </style>
 

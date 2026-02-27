@@ -154,7 +154,8 @@ import {
   FileBlock,
   TrailingParagraph,
   CustomCodeBlock,
-  TabKey
+  TabKey,
+  MermaidNode,
 } from '@/editor/extensions'
 
 // 组件
@@ -283,7 +284,14 @@ const editor = useEditor({
   content: props.document?.content || '<p></p>',
   editable: !props.isPreviewing,
   extensions: [
-    StarterKit.configure({ heading: false, codeBlock: false, link: false, underline: false }),
+    StarterKit.configure({
+      heading: false,
+      codeBlock: false,
+      link: false,
+      underline: false,
+      // 启用 Markdown 输入规则
+      inputRules: true,
+    }),
     BlockId,
     Heading.configure({ levels: [1, 2, 3, 4, 5, 6] }),
     Underline,
@@ -318,6 +326,7 @@ const editor = useEditor({
     CommentMark,
     TrailingParagraph,
     TabKey,
+    MermaidNode,
   ],
   editorProps: {
     attributes: { class: 'prose prose-sm max-w-none focus:outline-none' },

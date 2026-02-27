@@ -1,5 +1,5 @@
 <template>
-  <div class="slash-menu" v-if="items.length">
+  <div class="slash-menu" v-if="items.length" ref="menuRef" @wheel="onWheel">
     <button
       v-for="(item, index) in items"
       :key="item.title"
@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import type { SlashCommandItem } from '@/editor/extensions/SlashCommand'
 
 interface Props {
@@ -37,6 +37,24 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const selectedIndex = ref(0)
+const menuRef = ref<HTMLElement | null>(null)
+
+const setItemRef = (el: unknown, index: number) => {
+  // 不再使用这种方式
+}
+
+// 滚动到选中的项目
+const scrollToSelectedItem = () => {
+  if (!menuRef.value) return
+  const buttons = menuRef.value.querySelectorAll('.slash-item')
+  const currentItem = buttons[selectedIndex.value] as HTMLElement
+  if (currentItem) {
+    currentItem.scrollIntoView({
+      block: 'nearest',
+      behavior: 'smooth',
+    })
+  }
+}
 
 watch(
   () => props.items,
@@ -62,11 +80,13 @@ const onKeyDown = ({ event }: KeyDownEvent): boolean => {
   }
   if (event.key === 'ArrowDown') {
     selectedIndex.value = (selectedIndex.value + 1) % props.items.length
+    scrollToSelectedItem()
     return true
   }
   if (event.key === 'ArrowUp') {
     selectedIndex.value =
       (selectedIndex.value + props.items.length - 1) % props.items.length
+    scrollToSelectedItem()
     return true
   }
   if (event.key === 'Enter') {
@@ -74,6 +94,15 @@ const onKeyDown = ({ event }: KeyDownEvent): boolean => {
     return true
   }
   return false
+}
+
+// 滚轮滚动时保持选中项在可视区域
+let wheelTimer: ReturnType<typeof setTimeout> | null = null
+const onWheel = () => {
+  if (wheelTimer) clearTimeout(wheelTimer)
+  wheelTimer = setTimeout(() => {
+    scrollToSelectedItem()
+  }, 50)
 }
 
 defineExpose({

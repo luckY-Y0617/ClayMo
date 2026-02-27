@@ -184,6 +184,16 @@ export const DEFAULT_COMMAND_ITEMS: SlashCommandItem[] = [
       editor.view.dom.dispatchEvent(event)
     },
   },
+  {
+    title: 'Mermaid 图表',
+    description: '插入流程图、时序图等',
+    icon: '📊',
+    shortcut: 'Mermaid',
+    keywords: ['mermaid', 'diagram', 'flowchart', 'chart', '流程图'],
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).setMermaidNode().run()
+    },
+  },
 ]
 
 /**
